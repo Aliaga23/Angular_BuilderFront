@@ -29,6 +29,19 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/", request.url))
   }
 
+  // Example of what might be causing the issue
+  const isAuthenticated = false // Replace with your actual authentication check
+
+  // Allow access to login page even if authenticated
+  if (
+    isAuthenticated &&
+    !pathname.startsWith("/dashboard") &&
+    !pathname.startsWith("/login") &&
+    !pathname.startsWith("/register")
+  ) {
+    return NextResponse.redirect(new URL("/dashboard", request.url))
+  }
+
   return NextResponse.next()
 }
 

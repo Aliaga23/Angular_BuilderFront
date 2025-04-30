@@ -12,7 +12,7 @@ export default function ExportJsonButton() {
 
   const handleExportToJson = async () => {
     try {
-      // Preparar los datos en el mismo formato exacto que se usa en export-panel.tsx
+      // Preparar los datos en el formato correcto
       const exportData = {
         appName: "angular-ui-app",
         backgroundColor: pages[0]?.pageSettings?.backgroundColor || "#0f172a",
@@ -51,12 +51,20 @@ export default function ExportJsonButton() {
                 )
               }
 
+              // Asegurar que las posiciones sean enteros
+              const position = component.position
+                ? {
+                    x: Math.round(component.position.x),
+                    y: Math.round(component.position.y),
+                  }
+                : { x: 0, y: 0 }
+
               // Crear el objeto en el formato requerido
               return {
                 id: descriptiveId,
                 type: component.type,
                 name: count > 1 ? `${formattedName}${count}` : formattedName,
-                position: component.position || { x: 0, y: 0 },
+                position: position,
                 size: { width, height },
                 props: {
                   ...formattedProps,
@@ -74,7 +82,7 @@ export default function ExportJsonButton() {
         }),
       }
 
-      console.log("Enviando datos al endpoint:", exportData)
+      console.log("Enviando datos al endpoint:", JSON.stringify(exportData, null, 2))
 
       // Enviar los datos al endpoint
       const response = await fetch("https://angularbuilder.up.railway.app/generar-angular/", {
@@ -86,7 +94,9 @@ export default function ExportJsonButton() {
       })
 
       if (!response.ok) {
-        throw new Error(`Error en la respuesta del servidor: ${response.status}`)
+        const errorText = await response.text()
+        console.error("Error del servidor:", response.status, errorText)
+        throw new Error(`Error en la respuesta del servidor: ${response.status}\n${errorText}`)
       }
 
       // Obtener el blob de la respuesta (archivo ZIP)
@@ -112,7 +122,9 @@ export default function ExportJsonButton() {
       console.log("Proyecto exportado y descargado exitosamente")
     } catch (error) {
       console.error("Error al exportar el proyecto:", error)
-      alert("Error al exportar el proyecto. Descargando versión local como alternativa.")
+      alert(
+        `Error al exportar el proyecto: ${error instanceof Error ? error.message : "Error desconocido"}. Descargando versión local como alternativa.`,
+      )
 
       // Fallback a la exportación local en caso de error
       exportToAngular(getComponentsForCurrentPage(), "angular-ui-app", pages)

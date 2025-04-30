@@ -86,14 +86,18 @@ function OptimizedCanvasComponent({ component, isSelected, onClick }: OptimizedC
     const newX = Math.max(0, initialComponentPos.x + deltaX)
     const newY = Math.max(0, initialComponentPos.y + deltaY)
 
+    // Redondear las posiciones para el DOM
+    const roundedX = Math.round(newX)
+    const roundedY = Math.round(newY)
+
     // Actualizar directamente el DOM para una respuesta más fluida
     if (componentRef.current) {
-      componentRef.current.style.left = `${newX}px`
-      componentRef.current.style.top = `${newY}px`
+      componentRef.current.style.left = `${roundedX}px`
+      componentRef.current.style.top = `${roundedY}px`
     }
 
-    // Update component position using the throttled function
-    throttledUpdatePosition(component.id, Math.round(newX), Math.round(newY))
+    // Update component position using the throttled function with rounded values
+    throttledUpdatePosition(component.id, roundedX, roundedY)
   }
 
   // Handle mouse up to stop dragging

@@ -194,7 +194,8 @@ export default function ExportPanel() {
     }
   }
 
-  // Get the JSON output
+  // Modificar la función que genera el JSON para asegurar que las posiciones sean enteros
+  // y que todos los datos sean válidos
   const jsonOutput = JSON.stringify(
     {
       appName: appName || "angular-ui-app",
@@ -234,12 +235,20 @@ export default function ExportPanel() {
               )
             }
 
+            // Asegurar que las posiciones sean enteros
+            const position = component.position
+              ? {
+                  x: Math.round(component.position.x),
+                  y: Math.round(component.position.y),
+                }
+              : { x: 0, y: 0 }
+
             // Crear el objeto en el formato requerido
             return {
               id: descriptiveId,
               type: component.type,
               name: count > 1 ? `${formattedName}${count}` : formattedName,
-              position: component.position || { x: 0, y: 0 },
+              position: position,
               size: { width, height },
               props: {
                 ...formattedProps,

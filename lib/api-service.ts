@@ -184,3 +184,109 @@ export const projectService = {
     }
   },
 }
+
+// Add the apiService export with authentication-related methods
+export const apiService = {
+  async login(
+    email: string,
+    password: string,
+  ): Promise<{ success: boolean; token?: string; userId?: string; message?: string }> {
+    try {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        return {
+          success: false,
+          message: data.message || "Error al iniciar sesión",
+        }
+      }
+
+      return {
+        success: true,
+        token: data.token,
+        userId: data.userId,
+      }
+    } catch (error) {
+      console.error("Error during login:", error)
+      return {
+        success: false,
+        message: "Error de conexión al servidor",
+      }
+    }
+  },
+
+  async register(name: string, email: string, password: string): Promise<{ success: boolean; message?: string }> {
+    try {
+      const response = await fetch(`${API_URL}/api/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, email, password }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        return {
+          success: false,
+          message: data.message || "Error al registrar usuario",
+        }
+      }
+
+      return {
+        success: true,
+      }
+    } catch (error) {
+      console.error("Error during registration:", error)
+      return {
+        success: false,
+        message: "Error de conexión al servidor",
+      }
+    }
+  },
+
+  async getUserProfile(userId: string): Promise<any> {
+    try {
+      const response = await fetch(`${API_URL}/api/users/${userId}`)
+
+      if (!response.ok) {
+        throw new Error(`Error al obtener perfil: ${response.statusText}`)
+      }
+
+      return await response.json()
+    } catch (error) {
+      console.error("Error al obtener perfil de usuario:", error)
+      return null
+    }
+  },
+
+  async updateUserProfile(userId: string, profileData: any): Promise<boolean> {
+    try {
+      const response = await fetch(`${API_URL}/api/users/${userId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(profileData),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Error al actualizar perfil: ${response.statusText}`)
+      }
+
+      return true
+    } catch (error) {
+      console.error("Error al actualizar perfil de usuario:", error)
+      return false
+    }
+  },
+}

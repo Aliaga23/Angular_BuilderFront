@@ -89,7 +89,7 @@ export default function CanvasComponent({ component, isSelected, onClick }: Canv
       const newX = Math.max(0, initialComponentPos.x + deltaX)
       const newY = Math.max(0, initialComponentPos.y + deltaY)
 
-      // Update component position using the throttled function
+      // Update component position using the throttled function with rounded values
       throttledUpdatePosition(component.id, Math.round(newX), Math.round(newY))
     },
     [isDragging, initialMousePos, initialComponentPos, component.id, throttledUpdatePosition],

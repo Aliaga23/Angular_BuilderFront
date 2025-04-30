@@ -153,14 +153,18 @@ function SuperOptimizedCanvasComponent({ component, isSelected, onClick }: Super
       const newX = initialComponentPos.x + deltaX
       const newY = initialComponentPos.y + deltaY
 
+      // Redondear las posiciones para el DOM
+      const roundedX = Math.round(newX)
+      const roundedY = Math.round(newY)
+
       // Actualizar directamente el DOM para una respuesta más fluida
       if (componentRef.current) {
-        componentRef.current.style.left = `${newX}px`
-        componentRef.current.style.top = `${newY}px`
+        componentRef.current.style.left = `${roundedX}px`
+        componentRef.current.style.top = `${roundedY}px`
       }
 
-      // Update component position using the throttled function
-      throttledUpdatePosition(component.id, newX, newY)
+      // Update component position using the throttled function with rounded values
+      throttledUpdatePosition(component.id, roundedX, roundedY)
     },
     [isDragging, initialMousePos, initialComponentPos, component.id, throttledUpdatePosition],
   )
@@ -170,13 +174,13 @@ function SuperOptimizedCanvasComponent({ component, isSelected, onClick }: Super
     if (isDragging) {
       setIsDragging(false)
 
-      // Forzar una actualización final con la posición exacta
+      // Forzar una actualización final con la posición exacta redondeada
       if (componentRef.current) {
         const left = Number.parseFloat(componentRef.current.style.left)
         const top = Number.parseFloat(componentRef.current.style.top)
 
         if (!isNaN(left) && !isNaN(top)) {
-          updateComponentPosition(component.id, left, top)
+          updateComponentPosition(component.id, Math.round(left), Math.round(top))
         }
       }
     }

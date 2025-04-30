@@ -1,7 +1,5 @@
 "use client"
 
-import { Textarea } from "@/components/ui/textarea"
-
 import { useComponentContext } from "@/context/component-context"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
@@ -9,10 +7,9 @@ import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { X, Sliders, PanelLeft, Code, Palette, Type, Box, Layers, MousePointer } from "lucide-react"
+import { X, PanelLeft, Palette, Type, Box, Layers } from "lucide-react"
 import { ColorPicker } from "./color-picker"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { Switch } from "@/components/ui/switch"
 import { useCollaboration } from "@/context/collaboration-context"
 import { useEffect } from "react"
 
@@ -102,10 +99,6 @@ export default function PropertiesPanel({ componentId, onClose, isMobile = false
             <Palette className="h-4 w-4" />
             <span className={isMobile ? "hidden sm:inline" : ""}>Estilo</span>
           </TabsTrigger>
-          <TabsTrigger value="eventos" className="flex-1 text-xs h-9 rounded-none flex items-center gap-1">
-            <MousePointer className="h-4 w-4" />
-            <span className={isMobile ? "hidden sm:inline" : ""}>Eventos</span>
-          </TabsTrigger>
         </TabsList>
 
         <div className="flex-1 overflow-y-auto overflow-x-auto h-full">
@@ -115,10 +108,6 @@ export default function PropertiesPanel({ componentId, onClose, isMobile = false
 
           <TabsContent value="estilo" className="p-2 sm:p-3 mt-0 min-w-[280px] pb-20">
             <StyleProperties component={component} updateStyle={updateStyle} updateProp={updateProp} />
-          </TabsContent>
-
-          <TabsContent value="eventos" className="p-2 sm:p-3 space-y-4 mt-0 min-w-[280px] pb-20">
-            <EventProperties component={component} updateProp={updateProp} />
           </TabsContent>
         </div>
       </Tabs>
@@ -130,10 +119,28 @@ function ContentProperties({
   component,
   updateProp,
 }: { component: any; updateProp: (key: string, value: any) => void }) {
+  const updateComponentProps = (key: string, value: any) => {
+    updateProp(key, value)
+  }
+
+  const renderBasicProperties = () => (
+    <>
+      <div className="space-y-2">
+        <label className="text-xs font-medium">Nombre del Componente</label>
+        <input
+          type="text"
+          value={component.props.name || ""}
+          onChange={(e) => updateComponentProps("name", e.target.value)}
+          className="w-full h-8 px-2 text-xs rounded-md border border-border bg-background"
+        />
+      </div>
+    </>
+  )
+
   switch (component.type) {
     case "button":
       return (
-        <Accordion type="multiple" defaultValue={["general", "advanced"]}>
+        <Accordion type="multiple" defaultValue={["general"]}>
           <AccordionItem value="general" className="border border-border rounded-md mb-2">
             <AccordionTrigger className="px-3 py-2 hover:bg-primary/5">
               <div className="flex items-center">
@@ -226,61 +233,17 @@ function ContentProperties({
               </div>
             </AccordionContent>
           </AccordionItem>
-          <AccordionItem value="advanced" className="border border-border rounded-md mb-2">
-            <AccordionTrigger className="px-3 py-2 hover:bg-primary/5">
-              <div className="flex items-center">
-                <Code className="h-4 w-4 mr-2 text-primary" />
-                <span className="text-sm">Avanzado</span>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="space-y-4 pt-2 px-3 pb-5">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="disabled" className="text-xs">
-                    Deshabilitado
-                  </Label>
-                  <Switch
-                    id="disabled"
-                    checked={component.props.disabled || false}
-                    onCheckedChange={(checked) => updateProp("disabled", checked)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="id" className="text-xs">
-                    ID
-                  </Label>
-                  <Input
-                    id="id"
-                    value={component.props.id || ""}
-                    onChange={(e) => updateProp("id", e.target.value)}
-                    className="h-8 text-sm"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="name" className="text-xs">
-                    Nombre
-                  </Label>
-                  <Input
-                    id="name"
-                    value={component.props.name || ""}
-                    onChange={(e) => updateProp("name", e.target.value)}
-                    className="h-8 text-sm"
-                  />
-                </div>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
         </Accordion>
       )
 
     case "text":
       return (
-        <Accordion type="multiple" defaultValue={["content"]}>
-          <AccordionItem value="content" className="border border-border rounded-md mb-2">
+        <Accordion type="multiple" defaultValue={["general"]}>
+          <AccordionItem value="general" className="border border-border rounded-md mb-2">
             <AccordionTrigger className="px-3 py-2 hover:bg-primary/5">
               <div className="flex items-center">
                 <Type className="h-4 w-4 mr-2 text-primary" />
-                <span className="text-sm">Contenido</span>
+                <span className="text-sm">General</span>
               </div>
             </AccordionTrigger>
             <AccordionContent>
@@ -298,48 +261,15 @@ function ContentProperties({
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="text" className="text-xs">
-                    Texto
+                    Contenido de Texto
                   </Label>
-                  <Input
+                  <textarea
                     id="text"
                     value={component.props.text || ""}
                     onChange={(e) => updateProp("text", e.target.value)}
-                    className="h-8 text-sm"
+                    className="w-full h-24 px-2 py-2 text-sm rounded-md border border-border bg-background"
+                    rows={3}
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="as" className="text-xs">
-                    Elemento HTML
-                  </Label>
-                  <Select value={component.props.as || "p"} onValueChange={(value) => updateProp("as", value)}>
-                    <SelectTrigger id="as" className="h-8 text-sm">
-                      <SelectValue placeholder="Seleccionar elemento" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="p">Párrafo (p)</SelectItem>
-                      <SelectItem value="span">Span</SelectItem>
-                      <SelectItem value="div">Div</SelectItem>
-                      <SelectItem value="strong">Strong</SelectItem>
-                      <SelectItem value="em">Emphasis (em)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="theme" className="text-xs">
-                    Tema
-                  </Label>
-                  <Select
-                    value={component.props.theme || "light"}
-                    onValueChange={(value) => updateProp("theme", value)}
-                  >
-                    <SelectTrigger id="theme" className="h-8 text-sm">
-                      <SelectValue placeholder="Seleccionar tema" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="light">Light</SelectItem>
-                      <SelectItem value="dark">Dark</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
             </AccordionContent>
@@ -349,12 +279,12 @@ function ContentProperties({
 
     case "heading":
       return (
-        <Accordion type="multiple" defaultValue={["content"]}>
-          <AccordionItem value="content" className="border border-border rounded-md mb-2">
+        <Accordion type="multiple" defaultValue={["general"]}>
+          <AccordionItem value="general" className="border border-border rounded-md mb-2">
             <AccordionTrigger className="px-3 py-2 hover:bg-primary/5">
               <div className="flex items-center">
                 <Type className="h-4 w-4 mr-2 text-primary" />
-                <span className="text-sm">Contenido</span>
+                <span className="text-sm">General</span>
               </div>
             </AccordionTrigger>
             <AccordionContent>
@@ -383,7 +313,7 @@ function ContentProperties({
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="level" className="text-xs">
-                    Nivel del Encabezado
+                    Nivel
                   </Label>
                   <Select value={component.props.level || "h1"} onValueChange={(value) => updateProp("level", value)}>
                     <SelectTrigger id="level" className="h-8 text-sm">
@@ -399,22 +329,147 @@ function ContentProperties({
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      )
+
+    case "image":
+      return (
+        <Accordion type="multiple" defaultValue={["general"]}>
+          <AccordionItem value="general" className="border border-border rounded-md mb-2">
+            <AccordionTrigger className="px-3 py-2 hover:bg-primary/5">
+              <div className="flex items-center">
+                <Type className="h-4 w-4 mr-2 text-primary" />
+                <span className="text-sm">General</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-4 pt-2 px-3 pb-5">
                 <div className="space-y-2">
-                  <Label htmlFor="theme" className="text-xs">
-                    Tema
+                  <Label htmlFor="name" className="text-xs">
+                    Nombre del Componente
                   </Label>
-                  <Select
-                    value={component.props.theme || "light"}
-                    onValueChange={(value) => updateProp("theme", value)}
-                  >
-                    <SelectTrigger id="theme" className="h-8 text-sm">
-                      <SelectValue placeholder="Seleccionar tema" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="light">Light</SelectItem>
-                      <SelectItem value="dark">Dark</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Input
+                    id="name"
+                    value={component.props.name || ""}
+                    onChange={(e) => updateProp("name", e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="src" className="text-xs">
+                    URL de la Imagen
+                  </Label>
+                  <Input
+                    id="src"
+                    value={component.props.src || ""}
+                    onChange={(e) => updateProp("src", e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="alt" className="text-xs">
+                    Texto Alternativo
+                  </Label>
+                  <Input
+                    id="alt"
+                    value={component.props.alt || ""}
+                    onChange={(e) => updateProp("alt", e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="width" className="text-xs">
+                      Ancho (px)
+                    </Label>
+                    <Input
+                      id="width"
+                      type="number"
+                      value={component.props.width || 300}
+                      onChange={(e) => updateProp("width", Number.parseInt(e.target.value))}
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="height" className="text-xs">
+                      Alto (px)
+                    </Label>
+                    <Input
+                      id="height"
+                      type="number"
+                      value={component.props.height || 200}
+                      onChange={(e) => updateProp("height", Number.parseInt(e.target.value))}
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      )
+
+    case "link":
+      return (
+        <Accordion type="multiple" defaultValue={["general"]}>
+          <AccordionItem value="general" className="border border-border rounded-md mb-2">
+            <AccordionTrigger className="px-3 py-2 hover:bg-primary/5">
+              <div className="flex items-center">
+                <Type className="h-4 w-4 mr-2 text-primary" />
+                <span className="text-sm">General</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-4 pt-2 px-3 pb-5">
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-xs">
+                    Nombre del Componente
+                  </Label>
+                  <Input
+                    id="name"
+                    value={component.props.name || ""}
+                    onChange={(e) => updateProp("name", e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="label" className="text-xs">
+                    Texto del Enlace
+                  </Label>
+                  <Input
+                    id="label"
+                    value={component.props.label || ""}
+                    onChange={(e) => updateProp("label", e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="href" className="text-xs">
+                    URL
+                  </Label>
+                  <Input
+                    id="href"
+                    value={component.props.href || ""}
+                    onChange={(e) => updateProp("href", e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="openInNewTab" className="text-xs">
+                    Abrir en Nueva Pestaña
+                  </Label>
+                  <div className="flex h-4 items-center">
+                    <input
+                      id="openInNewTab"
+                      type="checkbox"
+                      checked={component.props.target === "_blank"}
+                      onChange={(e) => updateProp("target", e.target.checked ? "_blank" : "")}
+                      className="h-4 w-4"
+                    />
+                  </div>
                 </div>
               </div>
             </AccordionContent>
@@ -424,7 +479,7 @@ function ContentProperties({
 
     case "input":
       return (
-        <Accordion type="multiple" defaultValue={["general", "validation"]}>
+        <Accordion type="multiple" defaultValue={["general"]}>
           <AccordionItem value="general" className="border border-border rounded-md mb-2">
             <AccordionTrigger className="px-3 py-2 hover:bg-primary/5">
               <div className="flex items-center">
@@ -469,7 +524,7 @@ function ContentProperties({
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="type" className="text-xs">
-                    Tipo de Input
+                    Tipo
                   </Label>
                   <Select value={component.props.type || "text"} onValueChange={(value) => updateProp("type", value)}>
                     <SelectTrigger id="type" className="h-8 text-sm">
@@ -477,114 +532,28 @@ function ContentProperties({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="text">Texto</SelectItem>
-                      <SelectItem value="password">Contraseña</SelectItem>
                       <SelectItem value="email">Email</SelectItem>
+                      <SelectItem value="password">Contraseña</SelectItem>
                       <SelectItem value="number">Número</SelectItem>
                       <SelectItem value="tel">Teléfono</SelectItem>
                       <SelectItem value="url">URL</SelectItem>
                       <SelectItem value="date">Fecha</SelectItem>
-                      <SelectItem value="time">Hora</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="defaultValue" className="text-xs">
-                    Valor por defecto
-                  </Label>
-                  <Input
-                    id="defaultValue"
-                    value={component.props.defaultValue || ""}
-                    onChange={(e) => updateProp("defaultValue", e.target.value)}
-                    className="h-8 text-sm"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="size" className="text-xs">
-                    Tamaño
-                  </Label>
-                  <Select value={component.props.size || "md"} onValueChange={(value) => updateProp("size", value)}>
-                    <SelectTrigger id="size" className="h-8 text-sm">
-                      <SelectValue placeholder="Seleccionar tamaño" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="sm">Small</SelectItem>
-                      <SelectItem value="md">Medium</SelectItem>
-                      <SelectItem value="lg">Large</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="theme" className="text-xs">
-                    Tema
-                  </Label>
-                  <Select
-                    value={component.props.theme || "light"}
-                    onValueChange={(value) => updateProp("theme", value)}
-                  >
-                    <SelectTrigger id="theme" className="h-8 text-sm">
-                      <SelectValue placeholder="Seleccionar tema" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="light">Light</SelectItem>
-                      <SelectItem value="dark">Dark</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-          <AccordionItem value="validation" className="border border-border rounded-md mb-2">
-            <AccordionTrigger className="px-3 py-2 hover:bg-primary/5">
-              <div className="flex items-center">
-                <Code className="h-4 w-4 mr-2 text-primary" />
-                <span className="text-sm">Validación</span>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="space-y-4 pt-2 px-3 pb-5">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="required" className="text-xs">
                     Requerido
                   </Label>
-                  <Switch
-                    id="required"
-                    checked={component.props.required || false}
-                    onCheckedChange={(checked) => updateProp("required", checked)}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="disabled" className="text-xs">
-                    Deshabilitado
-                  </Label>
-                  <Switch
-                    id="disabled"
-                    checked={component.props.disabled || false}
-                    onCheckedChange={(checked) => updateProp("disabled", checked)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="minLength" className="text-xs">
-                    Longitud mínima
-                  </Label>
-                  <Input
-                    id="minLength"
-                    type="number"
-                    value={component.props.minLength || ""}
-                    onChange={(e) => updateProp("minLength", e.target.value)}
-                    className="h-8 text-sm"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="maxLength" className="text-xs">
-                    Longitud máxima
-                  </Label>
-                  <Input
-                    id="maxLength"
-                    type="number"
-                    value={component.props.maxLength || ""}
-                    onChange={(e) => updateProp("maxLength", e.target.value)}
-                    className="h-8 text-sm"
-                  />
+                  <div className="flex h-4 items-center">
+                    <input
+                      id="required"
+                      type="checkbox"
+                      checked={component.props.required || false}
+                      onChange={(e) => updateProp("required", e.target.checked)}
+                      className="h-4 w-4"
+                    />
+                  </div>
                 </div>
               </div>
             </AccordionContent>
@@ -592,9 +561,227 @@ function ContentProperties({
         </Accordion>
       )
 
-    case "navbar":
+    case "textarea":
       return (
-        <Accordion type="multiple" defaultValue={["general", "links"]}>
+        <Accordion type="multiple" defaultValue={["general"]}>
+          <AccordionItem value="general" className="border border-border rounded-md mb-2">
+            <AccordionTrigger className="px-3 py-2 hover:bg-primary/5">
+              <div className="flex items-center">
+                <Type className="h-4 w-4 mr-2 text-primary" />
+                <span className="text-sm">General</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-4 pt-2 px-3 pb-5">
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-xs">
+                    Nombre del Componente
+                  </Label>
+                  <Input
+                    id="name"
+                    value={component.props.name || ""}
+                    onChange={(e) => updateProp("name", e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="label" className="text-xs">
+                    Etiqueta
+                  </Label>
+                  <Input
+                    id="label"
+                    value={component.props.label || ""}
+                    onChange={(e) => updateProp("label", e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="placeholder" className="text-xs">
+                    Placeholder
+                  </Label>
+                  <Input
+                    id="placeholder"
+                    value={component.props.placeholder || ""}
+                    onChange={(e) => updateProp("placeholder", e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="rows" className="text-xs">
+                    Filas
+                  </Label>
+                  <Input
+                    id="rows"
+                    type="number"
+                    value={component.props.rows || 4}
+                    onChange={(e) => updateProp("rows", Number.parseInt(e.target.value))}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="required" className="text-xs">
+                    Requerido
+                  </Label>
+                  <div className="flex h-4 items-center">
+                    <input
+                      id="required"
+                      type="checkbox"
+                      checked={component.props.required || false}
+                      onChange={(e) => updateProp("required", e.target.checked)}
+                      className="h-4 w-4"
+                    />
+                  </div>
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      )
+
+    case "container":
+      return (
+        <Accordion type="multiple" defaultValue={["general"]}>
+          <AccordionItem value="general" className="border border-border rounded-md mb-2">
+            <AccordionTrigger className="px-3 py-2 hover:bg-primary/5">
+              <div className="flex items-center">
+                <Type className="h-4 w-4 mr-2 text-primary" />
+                <span className="text-sm">General</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-4 pt-2 px-3 pb-5">
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-xs">
+                    Nombre del Componente
+                  </Label>
+                  <Input
+                    id="name"
+                    value={component.props.name || ""}
+                    onChange={(e) => updateProp("name", e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="width" className="text-xs">
+                      Ancho (px)
+                    </Label>
+                    <Input
+                      id="width"
+                      type="number"
+                      value={component.props.width || 300}
+                      onChange={(e) => updateProp("width", Number.parseInt(e.target.value))}
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="height" className="text-xs">
+                      Alto (px)
+                    </Label>
+                    <Input
+                      id="height"
+                      type="number"
+                      value={component.props.height || 200}
+                      onChange={(e) => updateProp("height", Number.parseInt(e.target.value))}
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      )
+
+    case "list":
+      return (
+        <Accordion type="multiple" defaultValue={["general"]}>
+          <AccordionItem value="general" className="border border-border rounded-md mb-2">
+            <AccordionTrigger className="px-3 py-2 hover:bg-primary/5">
+              <div className="flex items-center">
+                <Type className="h-4 w-4 mr-2 text-primary" />
+                <span className="text-sm">General</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-4 pt-2 px-3 pb-5">
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-xs">
+                    Nombre del Componente
+                  </Label>
+                  <Input
+                    id="name"
+                    value={component.props.name || ""}
+                    onChange={(e) => updateProp("name", e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="type" className="text-xs">
+                    Tipo de Lista
+                  </Label>
+                  <Select value={component.props.type || "ul"} onValueChange={(value) => updateProp("type", value)}>
+                    <SelectTrigger id="type" className="h-8 text-sm">
+                      <SelectValue placeholder="Seleccionar tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ul">Lista no ordenada</SelectItem>
+                      <SelectItem value="ol">Lista ordenada</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-medium">Elementos</label>
+                    <button
+                      onClick={() => {
+                        const items = [...(component.props.items || []), `Nuevo elemento ${Date.now()}`]
+                        updateProp("items", items)
+                      }}
+                      className="text-xs px-2 py-1 bg-primary text-primary-foreground rounded-md"
+                    >
+                      + Añadir
+                    </button>
+                  </div>
+
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {Array.isArray(component.props.items) &&
+                      component.props.items.map((item, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={item}
+                            onChange={(e) => {
+                              const items = [...component.props.items]
+                              items[index] = e.target.value
+                              updateProp("items", items)
+                            }}
+                            className="flex-1 h-7 px-2 text-xs rounded-md border border-border bg-background"
+                            placeholder="Elemento"
+                          />
+                          <button
+                            onClick={() => {
+                              const items = [...component.props.items]
+                              items.splice(index, 1)
+                              updateProp("items", items)
+                            }}
+                            className="text-xs px-2 py-1 bg-destructive text-destructive-foreground rounded-md"
+                          >
+                            X
+                          </button>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      )
+
+    case "card":
+      return (
+        <Accordion type="multiple" defaultValue={["general"]}>
           <AccordionItem value="general" className="border border-border rounded-md mb-2">
             <AccordionTrigger className="px-3 py-2 hover:bg-primary/5">
               <div className="flex items-center">
@@ -627,102 +814,321 @@ function ContentProperties({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="variant" className="text-xs">
-                    Variante
+                  <Label htmlFor="content" className="text-xs">
+                    Contenido
                   </Label>
-                  <Select
-                    value={component.props.variant || "default"}
-                    onValueChange={(value) => updateProp("variant", value)}
-                  >
-                    <SelectTrigger id="variant" className="h-8 text-sm">
-                      <SelectValue placeholder="Seleccionar variante" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="default">Default</SelectItem>
-                      <SelectItem value="transparent">Transparente</SelectItem>
-                      <SelectItem value="sticky">Fijo</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="align" className="text-xs">
-                    Alineación
-                  </Label>
-                  <Select
-                    value={component.props.align || "space-between"}
-                    onValueChange={(value) => updateProp("align", value)}
-                  >
-                    <SelectTrigger id="align" className="h-8 text-sm">
-                      <SelectValue placeholder="Seleccionar alineación" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="left">Izquierda</SelectItem>
-                      <SelectItem value="center">Centro</SelectItem>
-                      <SelectItem value="right">Derecha</SelectItem>
-                      <SelectItem value="space-between">Espacio entre</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="theme" className="text-xs">
-                    Tema
-                  </Label>
-                  <Select
-                    value={component.props.theme || "light"}
-                    onValueChange={(value) => updateProp("theme", value)}
-                  >
-                    <SelectTrigger id="theme" className="h-8 text-sm">
-                      <SelectValue placeholder="Seleccionar tema" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="light">Light</SelectItem>
-                      <SelectItem value="dark">Dark</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="width" className="text-xs">
-                      Ancho (px)
-                    </Label>
-                    <Input
-                      id="width"
-                      type="number"
-                      value={component.props.width || 1200}
-                      onChange={(e) => updateProp("width", Number.parseInt(e.target.value))}
-                      className="h-8 text-sm"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="height" className="text-xs">
-                      Alto (px)
-                    </Label>
-                    <Input
-                      id="height"
-                      type="number"
-                      value={component.props.height || 60}
-                      onChange={(e) => updateProp("height", Number.parseInt(e.target.value))}
-                      className="h-8 text-sm"
-                    />
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="showLogo" className="text-xs">
-                    Mostrar logo
-                  </Label>
-                  <Switch
-                    id="showLogo"
-                    checked={component.props.showLogo !== false}
-                    onCheckedChange={(checked) => updateProp("showLogo", checked)}
+                  <textarea
+                    id="content"
+                    value={component.props.content || ""}
+                    onChange={(e) => updateProp("content", e.target.value)}
+                    className="w-full h-24 px-2 py-2 text-sm rounded-md border border-border bg-background"
+                    rows={3}
                   />
                 </div>
               </div>
             </AccordionContent>
           </AccordionItem>
+        </Accordion>
+      )
+
+    case "slider":
+      return (
+        <Accordion type="multiple" defaultValue={["general"]}>
+          <AccordionItem value="general" className="border border-border rounded-md mb-2">
+            <AccordionTrigger className="px-3 py-2 hover:bg-primary/5">
+              <div className="flex items-center">
+                <Type className="h-4 w-4 mr-2 text-primary" />
+                <span className="text-sm">General</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-4 pt-2 px-3 pb-5">
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-xs">
+                    Nombre del Componente
+                  </Label>
+                  <Input
+                    id="name"
+                    value={component.props.name || ""}
+                    onChange={(e) => updateProp("name", e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="min" className="text-xs">
+                      Valor Mínimo
+                    </Label>
+                    <Input
+                      id="min"
+                      type="number"
+                      value={component.props.min || 0}
+                      onChange={(e) => updateProp("min", Number.parseInt(e.target.value))}
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="max" className="text-xs">
+                      Valor Máximo
+                    </Label>
+                    <Input
+                      id="max"
+                      type="number"
+                      value={component.props.max || 100}
+                      onChange={(e) => updateProp("max", Number.parseInt(e.target.value))}
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="value" className="text-xs">
+                    Valor Actual
+                  </Label>
+                  <Input
+                    id="value"
+                    type="number"
+                    value={component.props.value || 50}
+                    onChange={(e) => updateProp("value", Number.parseInt(e.target.value))}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="step" className="text-xs">
+                    Paso
+                  </Label>
+                  <Input
+                    id="step"
+                    type="number"
+                    value={component.props.step || 1}
+                    onChange={(e) => updateProp("step", Number.parseInt(e.target.value))}
+                    className="h-8 text-sm"
+                  />
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      )
+
+    case "grid":
+      return (
+        <Accordion type="multiple" defaultValue={["general"]}>
+          <AccordionItem value="general" className="border border-border rounded-md mb-2">
+            <AccordionTrigger className="px-3 py-2 hover:bg-primary/5">
+              <div className="flex items-center">
+                <Type className="h-4 w-4 mr-2 text-primary" />
+                <span className="text-sm">General</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-4 pt-2 px-3 pb-5">
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-xs">
+                    Nombre del Componente
+                  </Label>
+                  <Input
+                    id="name"
+                    value={component.props.name || ""}
+                    onChange={(e) => updateProp("name", e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="columns" className="text-xs">
+                    Columnas
+                  </Label>
+                  <Input
+                    id="columns"
+                    type="number"
+                    value={component.props.columns || 2}
+                    onChange={(e) => updateProp("columns", Number.parseInt(e.target.value))}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="gap" className="text-xs">
+                    Espacio entre elementos (px)
+                  </Label>
+                  <Input
+                    id="gap"
+                    type="number"
+                    value={component.props.gap || 16}
+                    onChange={(e) => updateProp("gap", Number.parseInt(e.target.value))}
+                    className="h-8 text-sm"
+                  />
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      )
+
+    case "navbar":
+      return (
+        <Accordion type="multiple" defaultValue={["general", "layout", "logo", "links"]}>
+          <AccordionItem value="general" className="border border-border rounded-md mb-2">
+            <AccordionTrigger className="px-3 py-2 hover:bg-primary/5">
+              <div className="flex items-center">
+                <Type className="h-4 w-4 mr-2 text-primary" />
+                <span className="text-sm">General</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-4 pt-2 px-3 pb-5">
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-xs">
+                    Nombre del Componente
+                  </Label>
+                  <Input
+                    id="name"
+                    value={component.props.name || ""}
+                    onChange={(e) => updateProp("name", e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="title" className="text-xs">
+                    Título
+                  </Label>
+                  <Input
+                    id="title"
+                    value={component.props.title || ""}
+                    onChange={(e) => updateProp("title", e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="layout" className="border border-border rounded-md mb-2">
+            <AccordionTrigger className="px-3 py-2 hover:bg-primary/5">
+              <div className="flex items-center">
+                <Box className="h-4 w-4 mr-2 text-primary" />
+                <span className="text-sm">Layout</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-4 pt-2 px-3 pb-5">
+                <div className="space-y-2">
+                  <Label htmlFor="position" className="text-xs">
+                    Posición
+                  </Label>
+                  <Select
+                    value={component.props.position || "static"}
+                    onValueChange={(value) => updateProp("position", value)}
+                  >
+                    <SelectTrigger id="position" className="h-8 text-sm">
+                      <SelectValue placeholder="Seleccionar posición" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="static">Normal</SelectItem>
+                      <SelectItem value="fixed">Fija</SelectItem>
+                      <SelectItem value="sticky">Pegajosa</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="shadow" className="text-xs">
+                    Sombra
+                  </Label>
+                  <div className="flex h-4 items-center">
+                    <input
+                      id="shadow"
+                      type="checkbox"
+                      checked={component.props.shadow !== false}
+                      onChange={(e) => updateProp("shadow", e.target.checked)}
+                      className="h-4 w-4"
+                    />
+                  </div>
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="logo" className="border border-border rounded-md mb-2">
+            <AccordionTrigger className="px-3 py-2 hover:bg-primary/5">
+              <div className="flex items-center">
+                <Type className="h-4 w-4 mr-2 text-primary" />
+                <span className="text-sm">Logo</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-4 pt-2 px-3 pb-5">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="showLogo" className="text-xs">
+                    Mostrar Logo
+                  </Label>
+                  <div className="flex h-4 items-center">
+                    <input
+                      id="showLogo"
+                      type="checkbox"
+                      checked={component.props.showLogo !== false}
+                      onChange={(e) => updateProp("showLogo", e.target.checked)}
+                      className="h-4 w-4"
+                    />
+                  </div>
+                </div>
+                {component.props.showLogo !== false && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="logoSrc" className="text-xs">
+                        URL del Logo
+                      </Label>
+                      <Input
+                        id="logoSrc"
+                        value={component.props.logoSrc || ""}
+                        onChange={(e) => updateProp("logoSrc", e.target.value)}
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="logoAlt" className="text-xs">
+                        Texto Alternativo
+                      </Label>
+                      <Input
+                        id="logoAlt"
+                        value={component.props.logoAlt || ""}
+                        onChange={(e) => updateProp("logoAlt", e.target.value)}
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="logoWidth" className="text-xs">
+                          Ancho (px)
+                        </Label>
+                        <Input
+                          id="logoWidth"
+                          type="number"
+                          value={component.props.logoWidth || 40}
+                          onChange={(e) => updateProp("logoWidth", Number.parseInt(e.target.value))}
+                          className="h-8 text-sm"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="logoHeight" className="text-xs">
+                          Alto (px)
+                        </Label>
+                        <Input
+                          id="logoHeight"
+                          type="number"
+                          value={component.props.logoHeight || 40}
+                          onChange={(e) => updateProp("logoHeight", Number.parseInt(e.target.value))}
+                          className="h-8 text-sm"
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
           <AccordionItem value="links" className="border border-border rounded-md mb-2">
             <AccordionTrigger className="px-3 py-2 hover:bg-primary/5">
               <div className="flex items-center">
-                <Sliders className="h-4 w-4 mr-2 text-primary" />
+                <Type className="h-4 w-4 mr-2 text-primary" />
                 <span className="text-sm">Enlaces</span>
               </div>
             </AccordionTrigger>
@@ -796,14 +1202,14 @@ function ContentProperties({
         </Accordion>
       )
 
-    case "container":
+    case "sidebar":
       return (
-        <Accordion type="multiple" defaultValue={["dimensions", "layout"]}>
-          <AccordionItem value="dimensions" className="border border-border rounded-md mb-2">
+        <Accordion type="multiple" defaultValue={["general", "items"]}>
+          <AccordionItem value="general" className="border border-border rounded-md mb-2">
             <AccordionTrigger className="px-3 py-2 hover:bg-primary/5">
               <div className="flex items-center">
-                <Box className="h-4 w-4 mr-2 text-primary" />
-                <span className="text-sm">Dimensiones</span>
+                <Type className="h-4 w-4 mr-2 text-primary" />
+                <span className="text-sm">General</span>
               </div>
             </AccordionTrigger>
             <AccordionContent>
@@ -819,93 +1225,430 @@ function ContentProperties({
                     className="h-8 text-sm"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="width" className="text-xs">
-                      Ancho (px)
-                    </Label>
-                    <Input
-                      id="width"
-                      type="number"
-                      value={component.props.width || 300}
-                      onChange={(e) => updateProp("width", Number.parseInt(e.target.value))}
-                      className="h-8 text-sm"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="height" className="text-xs">
-                      Alto (px)
-                    </Label>
-                    <Input
-                      id="height"
-                      type="number"
-                      value={component.props.height || 200}
-                      onChange={(e) => updateProp("height", Number.parseInt(e.target.value))}
-                      className="h-8 text-sm"
-                    />
-                  </div>
-                </div>
               </div>
             </AccordionContent>
           </AccordionItem>
-          <AccordionItem value="layout" className="border border-border rounded-md mb-2">
+
+          <AccordionItem value="items" className="border border-border rounded-md mb-2">
             <AccordionTrigger className="px-3 py-2 hover:bg-primary/5">
               <div className="flex items-center">
-                <Sliders className="h-4 w-4 mr-2 text-primary" />
-                <span className="text-sm">Layout</span>
+                <Type className="h-4 w-4 mr-2 text-primary" />
+                <span className="text-sm">Elementos</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-4 pt-2 px-3 pb-5">
+                {(component.props.items || []).map((item: any, index: number) => (
+                  <div key={index} className="space-y-2 border border-border p-2 rounded-md">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-xs">Elemento {index + 1}</Label>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-muted-foreground"
+                        onClick={() => {
+                          const newItems = [...(component.props.items || [])]
+                          newItems.splice(index, 1)
+                          updateProp("items", newItems)
+                        }}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label htmlFor={`item-label-${index}`} className="text-xs">
+                          Etiqueta
+                        </Label>
+                        <Input
+                          id={`item-label-${index}`}
+                          value={item.label}
+                          onChange={(e) => {
+                            const newItems = [...(component.props.items || [])]
+                            newItems[index] = { ...item, label: e.target.value }
+                            updateProp("items", newItems)
+                          }}
+                          className="h-8 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`item-icon-${index}`} className="text-xs">
+                          Icono
+                        </Label>
+                        <Input
+                          id={`item-icon-${index}`}
+                          value={item.icon}
+                          onChange={(e) => {
+                            const newItems = [...(component.props.items || [])]
+                            newItems[index] = { ...item, icon: e.target.value }
+                            updateProp("items", newItems)
+                          }}
+                          className="h-8 text-sm"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => {
+                    const newItems = [...(component.props.items || []), { label: "Nuevo elemento", icon: "settings" }]
+                    updateProp("items", newItems)
+                  }}
+                >
+                  Añadir elemento
+                </Button>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      )
+
+    case "select":
+      return (
+        <>
+          {renderBasicProperties()}
+          <div className="space-y-4 mt-4">
+            <h3 className="font-medium text-sm">Propiedades del Select</h3>
+
+            <div className="space-y-2">
+              <label className="text-xs font-medium">Placeholder</label>
+              <input
+                type="text"
+                value={component.props.placeholder || ""}
+                onChange={(e) => updateComponentProps("placeholder", e.target.value)}
+                className="w-full h-8 px-2 text-xs rounded-md border border-border bg-background"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-medium">Valor por defecto</label>
+              <input
+                type="text"
+                value={component.props.defaultValue || ""}
+                onChange={(e) => updateComponentProps("defaultValue", e.target.value)}
+                className="w-full h-8 px-2 text-xs rounded-md border border-border bg-background"
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="select-multiple"
+                checked={component.props.multiple || false}
+                onChange={(e) => updateComponentProps("multiple", e.target.checked)}
+                className="h-4 w-4"
+              />
+              <label htmlFor="select-multiple" className="text-xs">
+                Selección múltiple
+              </label>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="select-required"
+                checked={component.props.required || false}
+                onChange={(e) => updateComponentProps("required", e.target.checked)}
+                className="h-4 w-4"
+              />
+              <label htmlFor="select-required" className="text-xs">
+                Requerido
+              </label>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="select-disabled"
+                checked={component.props.disabled || false}
+                onChange={(e) => updateComponentProps("disabled", e.target.checked)}
+                className="h-4 w-4"
+              />
+              <label htmlFor="select-disabled" className="text-xs">
+                Deshabilitado
+              </label>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-medium">Tamaño</label>
+              <select
+                value={component.props.size || "default"}
+                onChange={(e) => updateComponentProps("size", e.target.value)}
+                className="w-full h-8 px-2 text-xs rounded-md border border-border bg-background"
+              >
+                <option value="default">Default</option>
+                <option value="sm">Pequeño</option>
+                <option value="lg">Grande</option>
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-medium">Opciones</label>
+                <button
+                  onClick={() => {
+                    const options = [
+                      ...(component.props.options || []),
+                      { value: `option-${Date.now()}`, label: "Nueva opción" },
+                    ]
+                    updateComponentProps("options", options)
+                  }}
+                  className="text-xs px-2 py-1 bg-primary text-primary-foreground rounded-md"
+                >
+                  + Añadir
+                </button>
+              </div>
+
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {Array.isArray(component.props.options) &&
+                  component.props.options.map((option, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={option.label}
+                        onChange={(e) => {
+                          const options = [...component.props.options]
+                          options[index].label = e.target.value
+                          updateComponentProps("options", options)
+                        }}
+                        className="flex-1 h-7 px-2 text-xs rounded-md border border-border bg-background"
+                        placeholder="Etiqueta"
+                      />
+                      <input
+                        type="text"
+                        value={option.value}
+                        onChange={(e) => {
+                          const options = [...component.props.options]
+                          options[index].value = e.target.value
+                          updateComponentProps("options", options)
+                        }}
+                        className="flex-1 h-7 px-2 text-xs rounded-md border border-border bg-background"
+                        placeholder="Valor"
+                      />
+                      <button
+                        onClick={() => {
+                          const options = [...component.props.options]
+                          options.splice(index, 1)
+                          updateComponentProps("options", options)
+                        }}
+                        className="text-xs px-2 py-1 bg-destructive text-destructive-foreground rounded-md"
+                      >
+                        X
+                      </button>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </div>
+        </>
+      )
+
+    case "checklist":
+      return (
+        <>
+          {renderBasicProperties()}
+          <div className="space-y-4 mt-4">
+            <h3 className="font-medium text-sm">Propiedades de la Lista de Verificación</h3>
+
+            <div className="space-y-2">
+              <label className="text-xs font-medium">Etiqueta</label>
+              <input
+                type="text"
+                value={component.props.label || ""}
+                onChange={(e) => updateComponentProps("label", e.target.value)}
+                className="w-full h-8 px-2 text-xs rounded-md border border-border bg-background"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-medium">Nombre</label>
+              <input
+                type="text"
+                value={component.props.name || ""}
+                onChange={(e) => updateComponentProps("name", e.target.value)}
+                className="w-full h-8 px-2 text-xs rounded-md border border-border bg-background"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-medium">Orientación</label>
+              <select
+                value={component.props.orientation || "vertical"}
+                onChange={(e) => updateComponentProps("orientation", e.target.value)}
+                className="w-full h-8 px-2 text-xs rounded-md border border-border bg-background"
+              >
+                <option value="vertical">Vertical</option>
+                <option value="horizontal">Horizontal</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="checklist-required"
+                checked={component.props.required || false}
+                onChange={(e) => updateComponentProps("required", e.target.checked)}
+                className="h-4 w-4"
+              />
+              <label htmlFor="checklist-required" className="text-xs">
+                Requerido
+              </label>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="checklist-disabled"
+                checked={component.props.disabled || false}
+                onChange={(e) => updateComponentProps("disabled", e.target.checked)}
+                className="h-4 w-4"
+              />
+              <label htmlFor="checklist-disabled" className="text-xs">
+                Deshabilitado
+              </label>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-medium">Elementos</label>
+                <button
+                  onClick={() => {
+                    const items = [
+                      ...(component.props.items || []),
+                      { id: `item-${Date.now()}`, label: "Nuevo elemento", checked: false },
+                    ]
+                    updateComponentProps("items", items)
+                  }}
+                  className="text-xs px-2 py-1 bg-primary text-primary-foreground rounded-md"
+                >
+                  + Añadir
+                </button>
+              </div>
+
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {Array.isArray(component.props.items) &&
+                  component.props.items.map((item, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={item.label}
+                        onChange={(e) => {
+                          const items = [...component.props.items]
+                          items[index].label = e.target.value
+                          updateComponentProps("items", items)
+                        }}
+                        className="flex-1 h-7 px-2 text-xs rounded-md border border-border bg-background"
+                        placeholder="Etiqueta"
+                      />
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={item.checked || false}
+                          onChange={(e) => {
+                            const items = [...component.props.items]
+                            items[index].checked = e.target.checked
+                            updateComponentProps("items", items)
+                          }}
+                          className="h-4 w-4 mr-1"
+                        />
+                        <span className="text-xs">Marcado</span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const items = [...component.props.items]
+                          items.splice(index, 1)
+                          updateComponentProps("items", items)
+                        }}
+                        className="text-xs px-2 py-1 bg-destructive text-destructive-foreground rounded-md"
+                      >
+                        X
+                      </button>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </div>
+        </>
+      )
+
+    case "checkbox":
+      return (
+        <Accordion type="multiple" defaultValue={["general"]}>
+          <AccordionItem value="general" className="border border-border rounded-md mb-2">
+            <AccordionTrigger className="px-3 py-2 hover:bg-primary/5">
+              <div className="flex items-center">
+                <Type className="h-4 w-4 mr-2 text-primary" />
+                <span className="text-sm">General</span>
               </div>
             </AccordionTrigger>
             <AccordionContent>
               <div className="space-y-4 pt-2 px-3 pb-5">
                 <div className="space-y-2">
-                  <Label htmlFor="align" className="text-xs">
-                    Alineación
+                  <Label htmlFor="name" className="text-xs">
+                    Nombre del Componente
                   </Label>
-                  <Select value={component.props.align || "left"} onValueChange={(value) => updateProp("align", value)}>
-                    <SelectTrigger id="align" className="h-8 text-sm">
-                      <SelectValue placeholder="Seleccionar alineación" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="left">Izquierda</SelectItem>
-                      <SelectItem value="center">Centro</SelectItem>
-                      <SelectItem value="right">Derecha</SelectItem>
-                      <SelectItem value="space-between">Espacio entre</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Input
+                    id="name"
+                    value={component.props.name || ""}
+                    onChange={(e) => updateProp("name", e.target.value)}
+                    className="h-8 text-sm"
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="direction" className="text-xs">
-                    Dirección
+                  <Label htmlFor="label" className="text-xs">
+                    Etiqueta
                   </Label>
-                  <Select
-                    value={component.props.direction || "row"}
-                    onValueChange={(value) => updateProp("direction", value)}
-                  >
-                    <SelectTrigger id="direction" className="h-8 text-sm">
-                      <SelectValue placeholder="Seleccionar dirección" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="row">Horizontal</SelectItem>
-                      <SelectItem value="column">Vertical</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Input
+                    id="label"
+                    value={component.props.label || ""}
+                    onChange={(e) => updateProp("label", e.target.value)}
+                    className="h-8 text-sm"
+                  />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="theme" className="text-xs">
-                    Tema
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="checked" className="text-xs">
+                    Marcado por defecto
                   </Label>
-                  <Select
-                    value={component.props.theme || "light"}
-                    onValueChange={(value) => updateProp("theme", value)}
-                  >
-                    <SelectTrigger id="theme" className="h-8 text-sm">
-                      <SelectValue placeholder="Seleccionar tema" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="light">Light</SelectItem>
-                      <SelectItem value="dark">Dark</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex h-4 items-center">
+                    <input
+                      id="checked"
+                      type="checkbox"
+                      checked={component.props.checked || false}
+                      onChange={(e) => updateProp("checked", e.target.checked)}
+                      className="h-4 w-4"
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="required" className="text-xs">
+                    Requerido
+                  </Label>
+                  <div className="flex h-4 items-center">
+                    <input
+                      id="required"
+                      type="checkbox"
+                      checked={component.props.required || false}
+                      onChange={(e) => updateProp("required", e.target.checked)}
+                      className="h-4 w-4"
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="disabled" className="text-xs">
+                    Deshabilitado
+                  </Label>
+                  <div className="flex h-4 items-center">
+                    <input
+                      id="disabled"
+                      type="checkbox"
+                      checked={component.props.disabled || false}
+                      onChange={(e) => updateProp("disabled", e.target.checked)}
+                      className="h-4 w-4"
+                    />
+                  </div>
                 </div>
               </div>
             </AccordionContent>
@@ -913,6 +1656,368 @@ function ContentProperties({
         </Accordion>
       )
 
+    case "datepicker":
+      return (
+        <Accordion type="multiple" defaultValue={["general"]}>
+          <AccordionItem value="general" className="border border-border rounded-md mb-2">
+            <AccordionTrigger className="px-3 py-2 hover:bg-primary/5">
+              <div className="flex items-center">
+                <Type className="h-4 w-4 mr-2 text-primary" />
+                <span className="text-sm">General</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-4 pt-2 px-3 pb-5">
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-xs">
+                    Nombre del Componente
+                  </Label>
+                  <Input
+                    id="name"
+                    value={component.props.name || ""}
+                    onChange={(e) => updateProp("name", e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="label" className="text-xs">
+                    Etiqueta
+                  </Label>
+                  <Input
+                    id="label"
+                    value={component.props.label || ""}
+                    onChange={(e) => updateProp("label", e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="placeholder" className="text-xs">
+                    Placeholder
+                  </Label>
+                  <Input
+                    id="placeholder"
+                    value={component.props.placeholder || "Seleccionar fecha..."}
+                    onChange={(e) => updateProp("placeholder", e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="dateFormat" className="text-xs">
+                    Formato de Fecha
+                  </Label>
+                  <Select
+                    value={component.props.dateFormat || "dd/MM/yyyy"}
+                    onValueChange={(value) => updateProp("dateFormat", value)}
+                  >
+                    <SelectTrigger id="dateFormat" className="h-8 text-sm">
+                      <SelectValue placeholder="Seleccionar formato" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="dd/MM/yyyy">DD/MM/AAAA</SelectItem>
+                      <SelectItem value="MM/dd/yyyy">MM/DD/AAAA</SelectItem>
+                      <SelectItem value="yyyy-MM-dd">AAAA-MM-DD</SelectItem>
+                      <SelectItem value="dd.MM.yyyy">DD.MM.AAAA</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="required" className="text-xs">
+                    Requerido
+                  </Label>
+                  <div className="flex h-4 items-center">
+                    <input
+                      id="required"
+                      type="checkbox"
+                      checked={component.props.required || false}
+                      onChange={(e) => updateProp("required", e.target.checked)}
+                      className="h-4 w-4"
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="disabled" className="text-xs">
+                    Deshabilitado
+                  </Label>
+                  <div className="flex h-4 items-center">
+                    <input
+                      id="disabled"
+                      type="checkbox"
+                      checked={component.props.disabled || false}
+                      onChange={(e) => updateProp("disabled", e.target.checked)}
+                      className="h-4 w-4"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="minDate" className="text-xs">
+                    Fecha Mínima (AAAA-MM-DD)
+                  </Label>
+                  <Input
+                    id="minDate"
+                    value={component.props.minDate || ""}
+                    onChange={(e) => updateProp("minDate", e.target.value)}
+                    className="h-8 text-sm"
+                    placeholder="Ej: 2023-01-01"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="maxDate" className="text-xs">
+                    Fecha Máxima (AAAA-MM-DD)
+                  </Label>
+                  <Input
+                    id="maxDate"
+                    value={component.props.maxDate || ""}
+                    onChange={(e) => updateProp("maxDate", e.target.value)}
+                    className="h-8 text-sm"
+                    placeholder="Ej: 2023-12-31"
+                  />
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      )
+
+    case "table":
+      return (
+        <Accordion type="multiple" defaultValue={["general", "columns", "data"]}>
+          <AccordionItem value="general" className="border border-border rounded-md mb-2">
+            <AccordionTrigger className="px-3 py-2 hover:bg-primary/5">
+              <div className="flex items-center">
+                <Type className="h-4 w-4 mr-2 text-primary" />
+                <span className="text-sm">General</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-4 pt-2 px-3 pb-5">
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-xs">
+                    Nombre del Componente
+                  </Label>
+                  <Input
+                    id="name"
+                    value={component.props.name || ""}
+                    onChange={(e) => updateProp("name", e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="caption" className="text-xs">
+                    Título de la Tabla
+                  </Label>
+                  <Input
+                    id="caption"
+                    value={component.props.caption || ""}
+                    onChange={(e) => updateProp("caption", e.target.value)}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="striped" className="text-xs">
+                    Filas Alternadas
+                  </Label>
+                  <div className="flex h-4 items-center">
+                    <input
+                      id="striped"
+                      type="checkbox"
+                      checked={component.props.striped || false}
+                      onChange={(e) => updateProp("striped", e.target.checked)}
+                      className="h-4 w-4"
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="bordered" className="text-xs">
+                    Bordes
+                  </Label>
+                  <div className="flex h-4 items-center">
+                    <input
+                      id="bordered"
+                      type="checkbox"
+                      checked={component.props.bordered || false}
+                      onChange={(e) => updateProp("bordered", e.target.checked)}
+                      className="h-4 w-4"
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="hoverable" className="text-xs">
+                    Efecto Hover
+                  </Label>
+                  <div className="flex h-4 items-center">
+                    <input
+                      id="hoverable"
+                      type="checkbox"
+                      checked={component.props.hoverable || false}
+                      onChange={(e) => updateProp("hoverable", e.target.checked)}
+                      className="h-4 w-4"
+                    />
+                  </div>
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="columns" className="border border-border rounded-md mb-2">
+            <AccordionTrigger className="px-3 py-2 hover:bg-primary/5">
+              <div className="flex items-center">
+                <Type className="h-4 w-4 mr-2 text-primary" />
+                <span className="text-sm">Columnas</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-4 pt-2 px-3 pb-5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-medium">Columnas</label>
+                  <button
+                    onClick={() => {
+                      const columns = [
+                        ...(component.props.columns || []),
+                        { id: `col-${Date.now()}`, header: "Nueva Columna", accessor: `field${Date.now()}` },
+                      ]
+                      updateProp("columns", columns)
+                    }}
+                    className="text-xs px-2 py-1 bg-primary text-primary-foreground rounded-md"
+                  >
+                    + Añadir
+                  </button>
+                </div>
+
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {Array.isArray(component.props.columns) &&
+                    component.props.columns.map((column, index) => (
+                      <div key={index} className="space-y-2 border border-border p-2 rounded-md">
+                        <div className="flex justify-between items-center">
+                          <Label className="text-xs">Columna {index + 1}</Label>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-muted-foreground"
+                            onClick={() => {
+                              const columns = [...component.props.columns]
+                              columns.splice(index, 1)
+                              updateProp("columns", columns)
+                            }}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <Label htmlFor={`column-header-${index}`} className="text-xs">
+                              Encabezado
+                            </Label>
+                            <Input
+                              id={`column-header-${index}`}
+                              value={column.header}
+                              onChange={(e) => {
+                                const columns = [...component.props.columns]
+                                columns[index] = { ...column, header: e.target.value }
+                                updateProp("columns", columns)
+                              }}
+                              className="h-8 text-sm"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor={`column-accessor-${index}`} className="text-xs">
+                              Campo
+                            </Label>
+                            <Input
+                              id={`column-accessor-${index}`}
+                              value={column.accessor}
+                              onChange={(e) => {
+                                const columns = [...component.props.columns]
+                                columns[index] = { ...column, accessor: e.target.value }
+                                updateProp("columns", columns)
+                              }}
+                              className="h-8 text-sm"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="data" className="border border-border rounded-md mb-2">
+            <AccordionTrigger className="px-3 py-2 hover:bg-primary/5">
+              <div className="flex items-center">
+                <Type className="h-4 w-4 mr-2 text-primary" />
+                <span className="text-sm">Datos</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-4 pt-2 px-3 pb-5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-medium">Filas</label>
+                  <button
+                    onClick={() => {
+                      const newRow = {}
+                      if (Array.isArray(component.props.columns)) {
+                        component.props.columns.forEach((col) => {
+                          newRow[col.accessor] = `Valor ${Date.now()}`
+                        })
+                      }
+                      const data = [...(component.props.data || []), newRow]
+                      updateProp("data", data)
+                    }}
+                    className="text-xs px-2 py-1 bg-primary text-primary-foreground rounded-md"
+                  >
+                    + Añadir Fila
+                  </button>
+                </div>
+
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {Array.isArray(component.props.data) &&
+                    component.props.data.map((row, rowIndex) => (
+                      <div key={rowIndex} className="space-y-2 border border-border p-2 rounded-md">
+                        <div className="flex justify-between items-center">
+                          <Label className="text-xs">Fila {rowIndex + 1}</Label>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-muted-foreground"
+                            onClick={() => {
+                              const data = [...component.props.data]
+                              data.splice(rowIndex, 1)
+                              updateProp("data", data)
+                            }}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        <div className="grid grid-cols-1 gap-2">
+                          {Array.isArray(component.props.columns) &&
+                            component.props.columns.map((column, colIndex) => (
+                              <div key={colIndex} className="space-y-1">
+                                <Label htmlFor={`row-${rowIndex}-col-${colIndex}`} className="text-xs">
+                                  {column.header}
+                                </Label>
+                                <Input
+                                  id={`row-${rowIndex}-col-${colIndex}`}
+                                  value={row[column.accessor] || ""}
+                                  onChange={(e) => {
+                                    const data = [...component.props.data]
+                                    data[rowIndex] = { ...data[rowIndex], [column.accessor]: e.target.value }
+                                    updateProp("data", data)
+                                  }}
+                                  className="h-8 text-sm"
+                                />
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      )
+
+    // Resto de casos para otros componentes...
     default:
       return (
         <div className="p-4 text-center text-muted-foreground">
@@ -932,7 +2037,7 @@ function StyleProperties({
   updateProp: (key: string, value: any) => void
 }) {
   return (
-    <Accordion type="multiple" defaultValue={["dimensions", "typography", "spacing", "background", "border"]}>
+    <Accordion type="multiple" defaultValue={["dimensions", "typography", "background"]}>
       <AccordionItem value="dimensions" className="border border-border rounded-md mb-2">
         <AccordionTrigger className="px-3 py-2 hover:bg-primary/5">
           <div className="flex items-center">
@@ -1062,102 +2167,6 @@ function StyleProperties({
         </AccordionContent>
       </AccordionItem>
 
-      <AccordionItem value="spacing" className="border border-border rounded-md mb-2">
-        <AccordionTrigger className="px-3 py-2 hover:bg-primary/5">
-          <div className="flex items-center">
-            <Sliders className="h-4 w-4 mr-2 text-primary" />
-            <span className="text-sm">Espaciado</span>
-          </div>
-        </AccordionTrigger>
-        <AccordionContent>
-          <div className="space-y-4 pt-2 px-3 pb-5">
-            <div className="space-y-2">
-              <Label className="text-xs">Padding (px)</Label>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Label className="text-xs">Superior</Label>
-                  <Input
-                    type="number"
-                    value={Number.parseInt(component.style.paddingTop) || 0}
-                    onChange={(e) => updateStyle("paddingTop", `${e.target.value}px`)}
-                    className="h-8 text-sm"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs">Derecha</Label>
-                  <Input
-                    type="number"
-                    value={Number.parseInt(component.style.paddingRight) || 0}
-                    onChange={(e) => updateStyle("paddingRight", `${e.target.value}px`)}
-                    className="h-8 text-sm"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs">Inferior</Label>
-                  <Input
-                    type="number"
-                    value={Number.parseInt(component.style.paddingBottom) || 0}
-                    onChange={(e) => updateStyle("paddingBottom", `${e.target.value}px`)}
-                    className="h-8 text-sm"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs">Izquierda</Label>
-                  <Input
-                    type="number"
-                    value={Number.parseInt(component.style.paddingLeft) || 0}
-                    onChange={(e) => updateStyle("paddingLeft", `${e.target.value}px`)}
-                    className="h-8 text-sm"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-xs">Margen (px)</Label>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Label className="text-xs">Superior</Label>
-                  <Input
-                    type="number"
-                    value={Number.parseInt(component.style.marginTop) || 0}
-                    onChange={(e) => updateStyle("marginTop", `${e.target.value}px`)}
-                    className="h-8 text-sm"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs">Derecha</Label>
-                  <Input
-                    type="number"
-                    value={Number.parseInt(component.style.marginRight) || 0}
-                    onChange={(e) => updateStyle("marginRight", `${e.target.value}px`)}
-                    className="h-8 text-sm"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs">Inferior</Label>
-                  <Input
-                    type="number"
-                    value={Number.parseInt(component.style.marginBottom) || 0}
-                    onChange={(e) => updateStyle("marginBottom", `${e.target.value}px`)}
-                    className="h-8 text-sm"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs">Izquierda</Label>
-                  <Input
-                    type="number"
-                    value={Number.parseInt(component.style.marginLeft) || 0}
-                    onChange={(e) => updateStyle("marginLeft", `${e.target.value}px`)}
-                    className="h-8 text-sm"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </AccordionContent>
-      </AccordionItem>
-
       <AccordionItem value="background" className="border border-border rounded-md mb-2">
         <AccordionTrigger className="px-3 py-2 hover:bg-primary/5">
           <div className="flex items-center">
@@ -1193,164 +2202,6 @@ function StyleProperties({
           </div>
         </AccordionContent>
       </AccordionItem>
-
-      <AccordionItem value="border" className="border border-border rounded-md mb-2">
-        <AccordionTrigger className="px-3 py-2 hover:bg-primary/5">
-          <div className="flex items-center">
-            <Box className="h-4 w-4 mr-2 text-primary" />
-            <span className="text-sm">Borde</span>
-          </div>
-        </AccordionTrigger>
-        <AccordionContent>
-          <div className="space-y-4 pt-2 px-3 pb-5">
-            <div className="space-y-2">
-              <div className="grid grid-cols-3 gap-2">
-                <div>
-                  <Label className="text-xs">Ancho (px)</Label>
-                  <Input
-                    type="number"
-                    value={Number.parseInt(component.style.borderWidth) || 0}
-                    onChange={(e) => updateStyle("borderWidth", `${e.target.value}px`)}
-                    className="h-8 text-sm"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs">Estilo</Label>
-                  <Select
-                    value={component.style.borderStyle || "solid"}
-                    onValueChange={(value) => updateStyle("borderStyle", value)}
-                  >
-                    <SelectTrigger className="h-8 text-sm">
-                      <SelectValue placeholder="Estilo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="solid">Sólido</SelectItem>
-                      <SelectItem value="dashed">Discontinuo</SelectItem>
-                      <SelectItem value="dotted">Punteado</SelectItem>
-                      <SelectItem value="none">Ninguno</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label className="text-xs">Color</Label>
-                  <ColorPicker
-                    color={component.style.borderColor || "#ffffff"}
-                    onChange={(color) => updateStyle("borderColor", color)}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-xs">Radio del Borde (px)</Label>
-              <Input
-                type="number"
-                value={Number.parseInt(component.style.borderRadius) || 0}
-                onChange={(e) => updateStyle("borderRadius", `${e.target.value}px`)}
-                className="h-8 text-sm"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-xs">Sombra</Label>
-              <Select
-                value={component.style.boxShadow || "none"}
-                onValueChange={(value) => updateStyle("boxShadow", value)}
-              >
-                <SelectTrigger className="h-8 text-sm">
-                  <SelectValue placeholder="Seleccionar sombra" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Ninguna</SelectItem>
-                  <SelectItem value="0 1px 3px rgba(0,0,0,0.12)">Ligera</SelectItem>
-                  <SelectItem value="0 4px 6px rgba(0,0,0,0.1)">Media</SelectItem>
-                  <SelectItem value="0 10px 15px rgba(0,0,0,0.1)">Fuerte</SelectItem>
-                  <SelectItem value="0 20px 25px rgba(0,0,0,0.15)">Muy fuerte</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </AccordionContent>
-      </AccordionItem>
     </Accordion>
-  )
-}
-
-function EventProperties({ component, updateProp }: { component: any; updateProp: (key: string, value: any) => void }) {
-  return (
-    <div className="space-y-4">
-      <div className="p-4 border border-border rounded-md">
-        <h3 className="text-sm font-medium mb-2">Eventos disponibles</h3>
-        <div className="space-y-3">
-          <div className="space-y-2">
-            <Label htmlFor="onClick" className="text-xs">
-              onClick
-            </Label>
-            <Input
-              id="onClick"
-              value={component.props.onClick || ""}
-              onChange={(e) => updateProp("onClick", e.target.value)}
-              placeholder="console.log('Clicked')"
-              className="h-8 text-sm font-mono"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="onChange" className="text-xs">
-              onChange
-            </Label>
-            <Input
-              id="onChange"
-              value={component.props.onChange || ""}
-              onChange={(e) => updateProp("onChange", e.target.value)}
-              placeholder="console.log('Changed')"
-              className="h-8 text-sm font-mono"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="onFocus" className="text-xs">
-              onFocus
-            </Label>
-            <Input
-              id="onFocus"
-              value={component.props.onFocus || ""}
-              onChange={(e) => updateProp("onFocus", e.target.value)}
-              placeholder="console.log('Focused')"
-              className="h-8 text-sm font-mono"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="onBlur" className="text-xs">
-              onBlur
-            </Label>
-            <Input
-              id="onBlur"
-              value={component.props.onBlur || ""}
-              onChange={(e) => updateProp("onBlur", e.target.value)}
-              placeholder="console.log('Blurred')"
-              className="h-8 text-sm font-mono"
-            />
-          </div>
-        </div>
-      </div>
-      <div className="p-4 border border-border rounded-md">
-        <div className="flex items-center gap-2 mb-2">
-          <Code className="h-4 w-4 text-primary" />
-          <h3 className="text-sm font-medium">Código personalizado</h3>
-        </div>
-        <p className="text-xs text-muted-foreground mb-3">Añade código JavaScript personalizado para este componente</p>
-        <div className="space-y-2">
-          <Label htmlFor="customCode" className="text-xs">
-            Código JavaScript
-          </Label>
-          <Textarea
-            id="customCode"
-            value={component.props.customCode || ""}
-            onChange={(e) => updateProp("customCode", e.target.value)}
-            placeholder="// Tu código JavaScript aquí"
-            className="h-24 text-sm font-mono"
-          />
-        </div>
-      </div>
-    </div>
   )
 }

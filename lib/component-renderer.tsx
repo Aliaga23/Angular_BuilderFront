@@ -6,7 +6,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Calendar } from "@/components/ui/calendar"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Slider } from "@/components/ui/slider"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -70,9 +69,12 @@ export function renderComponent(component: any) {
       return (
         <div>
           {props.label && <Label htmlFor={props.id || "select"}>{props.label}</Label>}
-          <Select defaultValue={(props.options && props.options[0]?.value) || ""}>
+          <Select
+            defaultValue={props.defaultValue || (props.options && props.options[0]?.value) || ""}
+            disabled={props.disabled || false}
+          >
             <SelectTrigger id={props.id || "select"} style={componentStyle}>
-              <SelectValue placeholder="Select an option" />
+              <SelectValue placeholder={props.placeholder || "Select an option"} />
             </SelectTrigger>
             <SelectContent>
               {props.options?.map((option: any) => (
@@ -82,14 +84,47 @@ export function renderComponent(component: any) {
               )) || <SelectItem value="placeholder">No options</SelectItem>}
             </SelectContent>
           </Select>
+          {props.required && <span className="text-xs text-red-500 mt-1">* Requerido</span>}
         </div>
       )
 
     case "checkbox":
       return (
         <div className="flex items-center space-x-2">
-          <Checkbox id={props.id || "checkbox"} />
+          <Checkbox id={props.id || "checkbox"} defaultChecked={props.checked || false} />
           <Label htmlFor={props.id || "checkbox"}>{props.label || "Checkbox"}</Label>
+        </div>
+      )
+
+    case "checklist":
+      return (
+        <div
+          style={{
+            ...componentStyle,
+            position: "relative",
+          }}
+          className="checklist-component"
+        >
+          {props.label && <label className="block text-sm font-medium mb-1">{props.label}</label>}
+          <div className={`flex ${props.orientation === "vertical" ? "flex-col" : "flex-row flex-wrap"} gap-2`}>
+            {Array.isArray(props.items) &&
+              props.items.map((item, index) => (
+                <div key={item.id || index} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id={`${props.name}-${item.id || index}`}
+                    name={props.name}
+                    value={item.id || index}
+                    defaultChecked={item.checked}
+                    disabled={props.disabled}
+                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                  <label htmlFor={`${props.name}-${item.id || index}`} className="text-sm">
+                    {item.label}
+                  </label>
+                </div>
+              ))}
+          </div>
         </div>
       )
 
@@ -131,10 +166,6 @@ export function renderComponent(component: any) {
           style={componentStyle}
         />
       )
-
-    case "icon":
-      const IconComponent = (props.name && LucideIcons[props.name as keyof typeof LucideIcons]) || LucideIcons.Square
-      return <IconComponent size={props.size || 24} style={componentStyle} />
 
     case "container":
       return <div style={componentStyle}>{children?.map(renderComponent) || null}</div>
@@ -182,34 +213,6 @@ export function renderComponent(component: any) {
             style={componentStyle}
           />
         </div>
-      )
-
-    case "tabs":
-      return (
-        <Tabs defaultValue={props.activeTab || "tab1"} style={componentStyle}>
-          <TabsList>
-            {props.tabs?.map((tab: any) => (
-              <TabsTrigger key={tab.id} value={tab.id}>
-                {tab.label}
-              </TabsTrigger>
-            )) || (
-              <>
-                <TabsTrigger value="tab1">Tab 1</TabsTrigger>
-                <TabsTrigger value="tab2">Tab 2</TabsTrigger>
-              </>
-            )}
-          </TabsList>
-          {props.tabs?.map((tab: any) => (
-            <TabsContent key={tab.id} value={tab.id}>
-              {tab.content}
-            </TabsContent>
-          )) || (
-            <>
-              <TabsContent value="tab1">Tab 1 content</TabsContent>
-              <TabsContent value="tab2">Tab 2 content</TabsContent>
-            </>
-          )}
-        </Tabs>
       )
 
     case "grid":

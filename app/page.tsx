@@ -90,24 +90,6 @@ export default function LandingPage() {
                 Diseña, colabora y exporta componentes Angular profesionales con nuestro constructor visual intuitivo.
                 Perfecto para diseñadores y desarrolladores.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                <Link href="/register">
-                  <Button
-                    size="lg"
-                    className="px-8 bg-red-500 hover:bg-red-600 text-white font-medium shadow-md hover:shadow-lg transition-all"
-                  >
-                    Comenzar gratis
-                  </Button>
-                </Link>
-                <Link href="/dashboard">
-                  <Button
-                    size="lg"
-                    className="px-8 bg-red-500 hover:bg-red-600 text-white font-medium shadow-md hover:shadow-lg transition-all"
-                  >
-                    Ver demo
-                  </Button>
-                </Link>
-              </div>
             </div>
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 to-purple-500/10 rounded-lg blur-3xl"></div>

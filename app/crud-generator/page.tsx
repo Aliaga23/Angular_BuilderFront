@@ -356,6 +356,116 @@ export default function CrudGeneratorPage() {
     }
   }
 
+  // Modificar la función para detectar y manejar claves primarias compuestas
+  // Buscar la función handleGenerateCrud y modificarla para manejar claves primarias ya definidas:
+
+  const handleGenerateCrud = () => {
+    if (!entityData) return
+
+    // Verificar si ya hay una clave primaria definida en la entidad
+    let primaryKey = { name: primaryKeyName, type: primaryKeyType }
+
+    // Si no hay clave primaria seleccionada pero la entidad ya tiene una definida, usarla
+    if (
+      (!primaryKey || Object.keys(primaryKey).length === 0) &&
+      entityData.primary_key &&
+      Object.keys(entityData.primary_key).length > 0
+    ) {
+      primaryKey = entityData.primary_key
+    }
+
+    // Verificar que haya una clave primaria válida
+    if (!primaryKey || Object.keys(primaryKey).length === 0) {
+      toast({
+        title: "Error",
+        description: "Please select a primary key",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Continuar con la generación del CRUD usando la clave primaria
+    setIsGenerating(true)
+
+    try {
+      // Buscar el atributo seleccionado como clave primaria
+      const primaryKeyAttr = entityData.attributes.find((attr) => attr.name === primaryKeyName)
+
+      if (!primaryKeyAttr) {
+        toast({
+          title: "Error",
+          description: "Por favor, selecciona un atributo válido como clave primaria",
+          variant: "destructive",
+        })
+        setIsGenerating(false)
+        return
+      }
+
+      // Preparamos el JSON final con los datos configurados
+      const finalEntityData = {
+        name: entityData.name,
+        attributes: entityData.attributes,
+        primary_key: {
+          ...primaryKeyAttr,
+          type: primaryKeyType, // Usar el tipo seleccionado por el usuario
+        },
+        auto_increment: autoIncrement,
+      }
+
+      // Enviar el JSON al endpoint /generar-crud/
+      fetch("https://angularbuilder.up.railway.app/generar-crud/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(finalEntityData),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Error al generar el CRUD")
+          }
+          return response.blob()
+        })
+        .then((blob) => {
+          // Crear una URL para el blob
+          const url = URL.createObjectURL(blob)
+
+          // Crear un enlace para descargar el archivo
+          const a = document.createElement("a")
+          a.href = url
+          a.download = `crud-${selectedClass?.toLowerCase()}.zip`
+          document.body.appendChild(a)
+          a.click()
+          document.body.removeChild(a)
+          URL.revokeObjectURL(url)
+
+          setStep(3)
+          toast({
+            title: "CRUD generado correctamente",
+            description: "Tu aplicación Angular ha sido descargada",
+          })
+        })
+        .catch((error) => {
+          toast({
+            title: "Error",
+            description: "No se pudo generar el CRUD",
+            variant: "destructive",
+          })
+        })
+        .finally(() => {
+          setIsGenerating(false)
+        })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudo generar el CRUD",
+        variant: "destructive",
+      })
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-white">
@@ -636,7 +746,7 @@ export default function CrudGeneratorPage() {
 
                       <button
                         className="w-full mt-4 flex items-center justify-center px-4 py-2 bg-red-500 hover:bg-red-600 rounded text-white transition-colors"
-                        onClick={generateCrud}
+                        onClick={handleGenerateCrud}
                         disabled={isGenerating}
                       >
                         {isGenerating ? <>Generando...</> : <>Continuar</>}

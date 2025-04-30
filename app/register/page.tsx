@@ -10,21 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import {
-  AlertCircle,
-  Check,
-  Eye,
-  EyeOff,
-  ArrowRight,
-  User,
-  Mail,
-  Lock,
-  CheckCircle,
-  Info,
-  Github,
-  Facebook,
-  Twitter,
-} from "lucide-react"
+import { AlertCircle, Check, Eye, EyeOff, ArrowRight, User, Mail, Lock, CheckCircle, Info } from "lucide-react"
 import { authService } from "@/lib/auth-service"
 
 export default function RegisterPage() {
@@ -87,6 +73,7 @@ export default function RegisterPage() {
     return Object.keys(newErrors).length === 0
   }
 
+  // Modifica la función handleSubmit para que no guarde el token después del registro
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
@@ -105,14 +92,21 @@ export default function RegisterPage() {
         password: formData.password,
       })
 
-      // Guardar token y datos del usuario
-      authService.saveToken(response.access_token)
-      if (response.user) {
-        authService.saveUser(response.user)
-      }
+      console.log("Registration response:", response)
 
-      // Redirigir al dashboard
-      router.push("/dashboard")
+      // NO guardar el token aquí
+      // authService.saveToken(response.access_token);
+
+      // NO guardar datos del usuario aquí
+      // if (response.user) {
+      //   authService.saveUser(response.user);
+      // }
+
+      // NO disparar el evento auth-change
+      // window.dispatchEvent(new Event("auth-change"));
+
+      // Redirigir al login
+      router.push("/login?registered=true")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al registrar usuario")
     } finally {
@@ -133,8 +127,6 @@ export default function RegisterPage() {
     return strength
   }
 
-  const passwordStrength = getPasswordStrength()
-
   const getPasswordRequirements = () => {
     const { password } = formData
     return [
@@ -144,6 +136,8 @@ export default function RegisterPage() {
       { text: "Al menos un carácter especial", met: /[^A-Za-z0-9]/.test(password) },
     ]
   }
+
+  const passwordStrength = getPasswordStrength()
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
@@ -463,52 +457,10 @@ export default function RegisterPage() {
                     )}
                   </Button>
                 </form>
-
-                <div className="mt-6">
-                  <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-gray-200"></div>
-                    </div>
-                    <div className="relative flex justify-center text-sm">
-                      <span className="px-2 bg-white text-gray-500">O regístrate con</span>
-                    </div>
-                  </div>
-                  <div className="mt-6 grid grid-cols-3 gap-3">
-                    <button
-                      type="button"
-                      className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                    >
-                      <Github className="h-5 w-5" />
-                    </button>
-                    <button
-                      type="button"
-                      className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                    >
-                      <Facebook className="h-5 w-5" />
-                    </button>
-                    <button
-                      type="button"
-                      className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                    >
-                      <Twitter className="h-5 w-5" />
-                    </button>
-                  </div>
-                </div>
               </CardContent>
               <CardFooter className="p-6 pt-0 border-t border-gray-100">
-                <div className="text-sm text-center w-full text-gray-600">
-                  Al registrarte, aceptas nuestros{" "}
-                  <Link href="#" className="text-red-500 hover:text-red-600 font-medium">
-                    Términos de servicio
-                  </Link>{" "}
-                  y{" "}
-                  <Link href="#" className="text-red-500 hover:text-red-600 font-medium">
-                    Política de privacidad
-                  </Link>
-                  .
-                </div>
-                <div className="text-sm text-center mt-4">
-                  ¿Ya tienes una cuenta?{" "}
+                <div className="text-sm text-center">
+                  <span className="text-black">¿Ya tienes una cuenta?</span>{" "}
                   <Link href="/login" className="text-red-500 hover:text-red-600 font-medium">
                     Iniciar sesión
                   </Link>
@@ -574,16 +526,12 @@ export default function RegisterPage() {
                 <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path
                     fillRule="evenodd"
-                    d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+                    d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0110 4.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0020 10.017C20 4.484 15.522 0 10 0z"
                     clipRule="evenodd"
                   />
                 </svg>
               </a>
             </div>
-          </div>
-
-          <div className="border-t border-gray-100 mt-6 pt-6 text-center">
-            <p className="text-xs text-gray-500">© 2023 Angular Builder. Todos los derechos reservados.</p>
           </div>
         </div>
       </footer>

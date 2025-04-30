@@ -161,15 +161,6 @@ export default function PageManager() {
             <Edit className="h-3 w-3" />
           </Button>
         </div>
-        <div className="mt-2">
-          <div className="space-y-1">
-            <Label className="text-xs">Color de fondo</Label>
-            <ColorPicker
-              color={pages[currentPageIndex]?.pageSettings.backgroundColor || "#ffffff"}
-              onChange={handleChangeBackgroundColor}
-            />
-          </div>
-        </div>
       </div>
     </div>
   )

@@ -25,7 +25,7 @@ interface Attribute {
 interface EntityClass {
   name: string
   attributes: Attribute[]
-  primary_key: Attribute
+  primary_key: any
   auto_increment: boolean
 }
 
@@ -151,44 +151,9 @@ const CrudGenerator = () => {
     }
   }
 
-  // Función para actualizar la clave primaria
-  const updatePrimaryKeyOld = (entityName: string, keyName: string, keyType: string) => {
-    if (!analysisResult) return
-
-    setAnalysisResult({
-      ...analysisResult,
-      entities: analysisResult.entities.map((entity) => {
-        if (entity.name === entityName) {
-          return {
-            ...entity,
-            primary_key: {
-              ...entity.primary_key,
-              name: keyName,
-              type: keyType,
-            },
-          }
-        }
-        return entity
-      }),
-    })
-  }
-
-  // Función para actualizar el autoincremento
-  const updateAutoIncrementOld = (entityName: string, value: boolean) => {
-    if (!analysisResult) return
-
-    setAnalysisResult({
-      ...analysisResult,
-      entities: analysisResult.entities.map((entity) => {
-        if (entity.name === entityName) {
-          return {
-            ...entity,
-            auto_increment: value,
-          }
-        }
-        return entity
-      }),
-    })
+  // Función para verificar si una entidad ya tiene una clave primaria definida
+  const hasPrimaryKeyDefined = (entity: EntityClass): boolean => {
+    return entity.primary_key && (entity.primary_key.name || entity.primary_key.composite)
   }
 
   // Actualizar la función para seleccionar la clave primaria
@@ -200,17 +165,34 @@ const CrudGenerator = () => {
 
   // Actualizar la función generateJson para enviar los datos al endpoint /generar-crud/
   const generateJson = async () => {
-    if (!analysisResult || !selectedEntity || !primaryKey) return
+    if (!analysisResult || !selectedEntity) return
 
     const selectedEntityData = analysisResult.entities.find((e) => e.name === selectedEntity)
     if (!selectedEntityData) return
 
-    // Crear el JSON final con la clave primaria y auto_increment
-    const finalData = {
-      name: selectedEntityData.name,
-      attributes: selectedEntityData.attributes,
-      primary_key: primaryKey,
-      auto_increment: autoIncrement,
+    let finalData
+
+    // Si la entidad ya tiene una clave primaria definida, usarla directamente
+    if (hasPrimaryKeyDefined(selectedEntityData)) {
+      finalData = {
+        name: selectedEntityData.name,
+        attributes: selectedEntityData.attributes,
+        primary_key: selectedEntityData.primary_key,
+        auto_increment: selectedEntityData.auto_increment || false,
+      }
+    } else {
+      // Si no tiene clave primaria definida, usar la seleccionada por el usuario
+      if (!primaryKey) {
+        setError("Por favor, selecciona una clave primaria")
+        return
+      }
+
+      finalData = {
+        name: selectedEntityData.name,
+        attributes: selectedEntityData.attributes,
+        primary_key: primaryKey,
+        auto_increment: autoIncrement,
+      }
     }
 
     const jsonData = JSON.stringify(finalData, null, 2)
@@ -306,161 +288,129 @@ const CrudGenerator = () => {
   }
 
   // Renderizado de la entidad seleccionada
-  const renderSelectedEntityOld = () => {
-    if (!analysisResult || !selectedEntity) return null
-
-    const entity = analysisResult.entities.find((e) => e.name === selectedEntity)
-    if (!entity) return null
-
-    return (
-      <div className="space-y-6">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium">Clave Primaria:</h3>
-          </div>
-          <div className="flex gap-4 items-center">
-            <Select
-              defaultValue={entity.primary_key.type}
-              onValueChange={(value) => updatePrimaryKeyOld(entity.name, entity.primary_key.name, value)}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="integer">integer</SelectItem>
-                <SelectItem value="number">number</SelectItem>
-                <SelectItem value="string">string</SelectItem>
-                <SelectItem value="uuid">uuid</SelectItem>
-              </SelectContent>
-            </Select>
-            <Input
-              value={entity.primary_key.name}
-              onChange={(e) => updatePrimaryKeyOld(entity.name, e.target.value, entity.primary_key.type)}
-              className="flex-1"
-              placeholder="Nombre de la clave primaria"
-            />
-          </div>
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="auto-increment"
-              checked={entity.auto_increment}
-              onCheckedChange={(checked) => updateAutoIncrementOld(entity.name, checked)}
-            />
-            <Label htmlFor="auto-increment">Clave primaria autoincrementable</Label>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            El sistema generará automáticamente el valor de la clave primaria
-          </p>
-        </div>
-
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Atributos:</h3>
-          <div className="grid grid-cols-3 gap-2">
-            {entity.attributes.map((attr, index) => (
-              <div key={index} className="p-2 border rounded-md">
-                <div className="flex justify-between items-center mb-1">
-                  <span className="font-medium">{attr.name}</span>
-                  <Badge variant={attr.isRequired ? "default" : "outline"}>{attr.type}</Badge>
-                </div>
-                <p className="text-xs text-muted-foreground">{attr.isRequired ? "Requerido" : "Opcional"}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <Button onClick={generateJson} className="w-full">
-          <Code className="mr-2 h-4 w-4" />
-          Generar JSON
-        </Button>
-
-        {generatedJson && (
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">JSON Generado:</h3>
-            <ScrollArea className="h-[200px] w-full rounded-md border p-4">
-              <pre className="text-xs">{generatedJson}</pre>
-            </ScrollArea>
-            <Button onClick={downloadCrud} className="w-full" disabled={isLoading}>
-              {isLoading ? (
-                <>Generando CRUD...</>
-              ) : (
-                <>
-                  <Download className="mr-2 h-4 w-4" />
-                  Generar y Descargar CRUD
-                </>
-              )}
-            </Button>
-          </div>
-        )}
-      </div>
-    )
-  }
-
-  // Actualizar el renderizado de la entidad seleccionada para permitir seleccionar la clave primaria
   const renderSelectedEntity = () => {
     if (!analysisResult || !selectedEntity) return null
 
     const entity = analysisResult.entities.find((e) => e.name === selectedEntity)
     if (!entity) return null
 
+    // Verificar si la entidad ya tiene una clave primaria definida
+    const hasDefinedPrimaryKey = hasPrimaryKeyDefined(entity)
+
     return (
       <div className="space-y-6">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-medium">Clave Primaria:</h3>
           </div>
-          <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">Selecciona un atributo como clave primaria:</p>
-            <Select
-              value={primaryKey?.name}
-              onValueChange={(value) => {
-                const attr = entity.attributes.find((a) => a.name === value)
-                if (attr) {
-                  setPrimaryKey(attr)
-                }
-              }}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Selecciona un atributo" />
-              </SelectTrigger>
-              <SelectContent>
-                {entity.attributes.map((attr) => (
-                  <SelectItem key={attr.name} value={attr.name}>
-                    {attr.name} ({attr.type})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Switch id="auto-increment" checked={autoIncrement} onCheckedChange={setAutoIncrement} />
-            <Label htmlFor="auto-increment">Clave primaria autoincrementable</Label>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            El sistema generará automáticamente el valor de la clave primaria
-          </p>
+
+          {hasDefinedPrimaryKey ? (
+            // Si ya tiene clave primaria definida, mostrar información
+            <div className="p-4 bg-primary/10 border border-primary rounded-md">
+              <div className="flex items-center mb-2">
+                <Badge variant="outline" className="mr-2">
+                  Configuración existente
+                </Badge>
+                <p className="text-sm font-medium">Esta entidad ya tiene una clave primaria definida</p>
+              </div>
+
+              {entity.primary_key.composite ? (
+                // Si es una clave compuesta
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Clave primaria compuesta:</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {entity.primary_key.composite.map((fieldName: string, index: number) => (
+                      <div key={index} className="p-2 bg-muted rounded-md">
+                        <span className="text-sm font-medium">{fieldName}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                // Si es una clave simple
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    Nombre: <span className="font-medium">{entity.primary_key.name}</span>
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Tipo: <span className="font-medium">{entity.primary_key.type}</span>
+                  </p>
+                  <div className="flex items-center mt-2">
+                    <Switch id="auto-increment-readonly" checked={entity.auto_increment} disabled />
+                    <Label htmlFor="auto-increment-readonly" className="ml-2">
+                      Autoincrementable
+                    </Label>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            // Si no tiene clave primaria definida, mostrar selector
+            <>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">Selecciona un atributo como clave primaria:</p>
+                <Select
+                  value={primaryKey?.name}
+                  onValueChange={(value) => {
+                    const attr = entity.attributes.find((a) => a.name === value)
+                    if (attr) {
+                      setPrimaryKey(attr)
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Selecciona un atributo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {entity.attributes.map((attr) => (
+                      <SelectItem key={attr.name} value={attr.name}>
+                        {attr.name} ({attr.type})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch id="auto-increment" checked={autoIncrement} onCheckedChange={setAutoIncrement} />
+                <Label htmlFor="auto-increment">Clave primaria autoincrementable</Label>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                El sistema generará automáticamente el valor de la clave primaria
+              </p>
+            </>
+          )}
         </div>
 
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Atributos:</h3>
           <div className="grid grid-cols-3 gap-2">
-            {entity.attributes.map((attr, index) => (
-              <div
-                key={index}
-                className={`p-2 border rounded-md ${primaryKey?.name === attr.name ? "border-primary bg-primary/10" : ""}`}
-                onClick={() => setPrimaryKey(attr)}
-              >
-                <div className="flex justify-between items-center mb-1">
-                  <span className="font-medium">{attr.name}</span>
-                  <Badge variant={attr.isRequired ? "default" : "outline"}>{attr.type}</Badge>
+            {entity.attributes.map((attr, index) => {
+              // Verificar si este atributo es la clave primaria
+              const isPrimaryKey = hasDefinedPrimaryKey
+                ? entity.primary_key.composite
+                  ? entity.primary_key.composite.includes(attr.name)
+                  : entity.primary_key.name === attr.name
+                : primaryKey?.name === attr.name
+
+              return (
+                <div
+                  key={index}
+                  className={`p-2 border rounded-md ${isPrimaryKey ? "border-primary bg-primary/10" : ""}`}
+                  onClick={() => !hasDefinedPrimaryKey && setPrimaryKey(attr)}
+                >
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="font-medium">{attr.name}</span>
+                    <Badge variant={attr.isRequired ? "default" : "outline"}>{attr.type}</Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{attr.isRequired ? "Requerido" : "Opcional"}</p>
+                  {isPrimaryKey && (
+                    <Badge variant="secondary" className="mt-1">
+                      {entity.primary_key.composite ? "Parte de Clave Compuesta" : "Clave Primaria"}
+                    </Badge>
+                  )}
                 </div>
-                <p className="text-xs text-muted-foreground">{attr.isRequired ? "Requerido" : "Opcional"}</p>
-                {primaryKey?.name === attr.name && (
-                  <Badge variant="secondary" className="mt-1">
-                    Clave Primaria
-                  </Badge>
-                )}
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
 
@@ -512,17 +462,19 @@ const CrudGenerator = () => {
 
     setSelectedEntity(className)
 
-    // Establecer clave primaria
-    if (selectedEntityData.primary_key && selectedEntityData.primary_key.name) {
+    // Si la entidad ya tiene una clave primaria definida, usarla
+    if (hasPrimaryKeyDefined(selectedEntityData)) {
       setPrimaryKey(selectedEntityData.primary_key)
-    } else if (selectedEntityData.attributes.length > 0) {
-      setPrimaryKey(selectedEntityData.attributes[0])
+      setAutoIncrement(selectedEntityData.auto_increment || false)
     } else {
-      setPrimaryKey(null)
+      // Si no tiene clave primaria definida, usar el primer atributo
+      if (selectedEntityData.attributes.length > 0) {
+        setPrimaryKey(selectedEntityData.attributes[0])
+      } else {
+        setPrimaryKey(null)
+      }
+      setAutoIncrement(false)
     }
-
-    // Establecer autoincremento
-    setAutoIncrement(selectedEntityData.auto_increment || false)
 
     // Resetear el JSON generado (para que se regenere correctamente)
     setGeneratedJson(null)
@@ -655,9 +607,16 @@ const CrudGenerator = () => {
                     >
                       <div className="flex justify-between items-center">
                         <div className="font-medium">{entity.name}</div>
-                        <Badge variant="secondary" className="text-xs">
-                          {entity.attributes.length} campos
-                        </Badge>
+                        <div className="flex items-center">
+                          {hasPrimaryKeyDefined(entity) && (
+                            <Badge variant="outline" className="mr-2">
+                              PK definida
+                            </Badge>
+                          )}
+                          <Badge variant="secondary" className="text-xs">
+                            {entity.attributes.length} campos
+                          </Badge>
+                        </div>
                       </div>
                     </div>
                   ))}

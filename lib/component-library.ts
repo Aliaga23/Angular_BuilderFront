@@ -6,18 +6,17 @@ import {
   TextIcon as Textarea,
   ListChecks,
   CheckSquare,
-  CircleDot,
   ImageIcon,
   Box,
   List,
   LinkIcon,
   CreditCard,
   Sliders,
-  NotebookTabsIcon as TabsIcon,
   LayoutGrid,
   Calendar,
   LayoutDashboard,
   Menu,
+  CheckCheck,
 } from "lucide-react"
 
 export const componentLibrary = {
@@ -32,7 +31,6 @@ export const componentLibrary = {
         name: "Button", // Añadir nombre por defecto
       },
       defaultStyle: {
-        padding: "8px 16px",
         borderRadius: "4px",
         backgroundColor: "#f9f9f9",
         color: "#000000",
@@ -83,19 +81,6 @@ export const componentLibrary = {
       },
     },
     {
-      type: "icon",
-      name: "Icon",
-      icon: Square,
-      defaultProps: {
-        name: "heart",
-        size: 24,
-        componentName: "Icon",
-      },
-      defaultStyle: {
-        color: "#000000",
-      },
-    },
-    {
       type: "link",
       name: "Link",
       icon: LinkIcon,
@@ -123,7 +108,6 @@ export const componentLibrary = {
       },
       defaultStyle: {
         width: "100%",
-        padding: "8px",
         borderRadius: "4px",
         border: "1px solid #ccc",
       },
@@ -140,7 +124,6 @@ export const componentLibrary = {
       },
       defaultStyle: {
         width: "100%",
-        padding: "8px",
         borderRadius: "4px",
         border: "1px solid #ccc",
       },
@@ -156,11 +139,16 @@ export const componentLibrary = {
           { value: "option2", label: "Option 2" },
           { value: "option3", label: "Option 3" },
         ],
+        placeholder: "Seleccione una opción",
         name: "Select",
+        required: false,
+        disabled: false,
+        multiple: false,
+        defaultValue: "",
+        size: "default",
       },
       defaultStyle: {
         width: "100%",
-        padding: "8px",
         borderRadius: "4px",
         border: "1px solid #ccc",
       },
@@ -177,19 +165,23 @@ export const componentLibrary = {
       defaultStyle: {},
     },
     {
-      type: "radio",
-      name: "Radio",
-      icon: CircleDot,
+      type: "checklist",
+      name: "Checklist",
+      icon: CheckCheck,
       defaultProps: {
-        label: "Radio Label",
-        options: [
-          { value: "option1", label: "Option 1" },
-          { value: "option2", label: "Option 2" },
+        label: "Checklist Label",
+        items: [
+          { id: "item1", label: "Item 1", checked: false },
+          { id: "item2", label: "Item 2", checked: true },
+          { id: "item3", label: "Item 3", checked: false },
         ],
-        value: "option1",
-        name: "Radio",
+        name: "Checklist",
+        orientation: "vertical",
+        required: false,
       },
-      defaultStyle: {},
+      defaultStyle: {
+        width: "100%",
+      },
     },
     {
       type: "datepicker",
@@ -218,7 +210,6 @@ export const componentLibrary = {
       defaultStyle: {
         width: "300px",
         height: "200px",
-        padding: "16px",
         border: "1px solid #ccc",
         borderRadius: "4px",
         backgroundColor: "#f9f9f9",
@@ -271,22 +262,6 @@ export const componentLibrary = {
       },
     },
     {
-      type: "tabs",
-      name: "Tabs",
-      icon: TabsIcon,
-      defaultProps: {
-        tabs: [
-          { id: "tab1", label: "Tab 1", content: "Tab 1 content" },
-          { id: "tab2", label: "Tab 2", content: "Tab 2 content" },
-        ],
-        activeTab: "tab1",
-        name: "Tabs",
-      },
-      defaultStyle: {
-        width: "100%",
-      },
-    },
-    {
       type: "grid",
       name: "Grid",
       icon: LayoutGrid,
@@ -302,7 +277,6 @@ export const componentLibrary = {
         width: "100%",
         minHeight: "200px",
         border: "1px dashed #ccc",
-        padding: "16px",
       },
       defaultChildren: [],
     },
@@ -354,7 +328,6 @@ export const componentLibrary = {
       },
       defaultStyle: {
         width: "100%", // Esto será reemplazado por el valor en píxeles durante la normalización
-        padding: "16px",
         backgroundColor: "#f9f9f9",
         display: "flex",
         justifyContent: "space-between",
@@ -376,7 +349,6 @@ export const componentLibrary = {
       defaultStyle: {
         width: "250px",
         height: "400px",
-        padding: "16px",
         backgroundColor: "#f9f9f9",
         borderRight: "1px solid #ccc",
       },

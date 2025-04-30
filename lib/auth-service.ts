@@ -106,6 +106,9 @@ export const authService = {
     localStorage.setItem("user", JSON.stringify(user))
     // Also store the user ID separately for easier access
     localStorage.setItem("userId", user.id)
+
+    // Log the user object to help with debugging
+    console.log("Saving user data:", user)
   },
 
   getToken(): string | null {
@@ -130,5 +133,9 @@ export const authService = {
   logout(): void {
     localStorage.removeItem("auth_token")
     localStorage.removeItem("user")
+    localStorage.removeItem("userId")
+
+    // Dispatch auth-change event
+    window.dispatchEvent(new Event("auth-change"))
   },
 }

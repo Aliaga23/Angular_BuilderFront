@@ -17,17 +17,82 @@ import { authService, type UserData } from "@/lib/auth-service"
 
 export default function NavBar() {
   const router = useRouter()
+  // Add a state variable to track authentication status
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [user, setUser] = useState<UserData | null>(null)
 
+  // Add useEffect to check auth status when component mounts
   useEffect(() => {
-    // Cargar datos del usuario
-    const userData = authService.getUser()
-    setUser(userData)
+    const checkAuth = () => {
+      const authStatus = authService.isAuthenticated()
+      setIsAuthenticated(authStatus)
+      if (authStatus) {
+        setUser(authService.getUser())
+      }
+    }
+
+    checkAuth()
+
+    // Add event listeners for storage and auth-change events
+    const handleStorageChange = () => {
+      checkAuth()
+    }
+
+    const handleAuthChange = () => {
+      checkAuth()
+    }
+
+    window.addEventListener("storage", handleStorageChange)
+    window.addEventListener("auth-change", handleAuthChange)
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange)
+      window.removeEventListener("auth-change", handleAuthChange)
+    }
   }, [])
 
   const handleLogout = () => {
     authService.logout()
     router.push("/login")
+  }
+
+  const UserProfileMenu = ({ user }: { user: UserData | null }) => {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="rounded-full">
+            <div
+              className="h-8 w-8 rounded-full flex items-center justify-center text-white font-medium"
+              style={{ backgroundColor: user?.color || "#ef4444" }}
+            >
+              {user?.username ? user.username.charAt(0).toUpperCase() : "U"}
+            </div>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel>
+            <div className="flex flex-col">
+              <span>{user?.username}</span>
+              <span className="text-xs text-gray-500">{user?.email}</span>
+            </div>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => router.push("/profile")} className="cursor-pointer">
+            <User className="mr-2 h-4 w-4" />
+            <span>Perfil</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem className="cursor-pointer">
+            <Settings className="mr-2 h-4 w-4" />
+            <span>Configuración</span>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+            <LogOut className="mr-2 h-4 w-4" />
+            <span>Cerrar sesión</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    )
   }
 
   return (
@@ -56,42 +121,11 @@ export default function NavBar() {
         </div>
         <div className="hidden md:flex items-center gap-8"></div>
         <div className="flex items-center gap-4">
-          {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <div
-                    className="h-8 w-8 rounded-full flex items-center justify-center text-white font-medium"
-                    style={{ backgroundColor: user.color || "#ef4444" }}
-                  >
-                    {user.username ? user.username.charAt(0).toUpperCase() : "U"}
-                  </div>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>
-                  <div className="flex flex-col">
-                    <span>{user.username}</span>
-                    <span className="text-xs text-gray-500">{user.email}</span>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => router.push("/profile")} className="cursor-pointer">
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Perfil</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer">
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Configuración</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Cerrar sesión</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+          {isAuthenticated ? (
+            // User profile dropdown or menu
+            <UserProfileMenu user={user} />
           ) : (
+            // Login/Register buttons
             <div className="flex items-center gap-4">
               <Link href="/login">
                 <span className="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 py-2 text-gray-600 bg-transparent">

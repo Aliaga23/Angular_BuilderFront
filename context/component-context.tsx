@@ -274,21 +274,26 @@ export function ComponentProvider({ children }: { children: ReactNode }) {
     [getComponent, getComponentsForCurrentPage, pages, currentPageIndex, updatePage, sendChange],
   )
 
+  // Modificar la función updateComponentPosition para asegurar que las posiciones sean enteros
   const updateComponentPosition = useCallback(
     (id: string, x: number, y: number) => {
       // Obtener el componente actual
       const component = getComponent(id)
       if (!component) return
 
+      // Redondear las coordenadas a enteros
+      const roundedX = Math.round(x)
+      const roundedY = Math.round(y)
+
       // Verificar si la posición ha cambiado realmente
-      if (component.position && component.position.x === x && component.position.y === y) {
+      if (component.position && component.position.x === roundedX && component.position.y === roundedY) {
         return // No actualizar si la posición es la misma
       }
 
       updateComponent(id, {
         position: {
-          x: x,
-          y: y,
+          x: roundedX,
+          y: roundedY,
         },
       })
 
@@ -299,8 +304,8 @@ export function ComponentProvider({ children }: { children: ReactNode }) {
         componentId: id,
         payload: {
           position: {
-            x: x,
-            y: y,
+            x: roundedX,
+            y: roundedY,
           },
         },
         pageIndex: currentPageIndex,
