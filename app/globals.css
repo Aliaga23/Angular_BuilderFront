@@ -1,0 +1,370 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 47% 9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 217 91% 60%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217 32% 17%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217 32% 17%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 217 91% 60%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217 32% 17%;
+    --input: 217 32% 17%;
+    --ring: 224.3 76.5% 48%;
+
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+.canvas-grid {
+  background-size: 20px 20px;
+  background-image: linear-gradient(to right, rgba(59, 130, 246, 0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(59, 130, 246, 0.1) 1px, transparent 1px);
+}
+
+/* Añadir estos estilos para el cursor de navegación */
+.canvas-dragging {
+  cursor: grabbing !important;
+}
+
+.canvas-draggable {
+  cursor: grab;
+}
+
+/* Estilos para el zoom */
+.canvas-zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Estilos para los controles de tamaño del canvas */
+.canvas-size-controls input {
+  width: 4rem;
+  text-align: center;
+}
+
+.component-card {
+  transition: all 0.2s ease;
+}
+
+.component-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.drag-handle {
+  cursor: grab;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.component-selected {
+  box-shadow: 0 0 0 2px hsl(var(--primary)), 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.tab-highlight {
+  position: relative;
+}
+
+.tab-highlight::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: hsl(var(--primary));
+  transform: scaleX(0);
+  transition: transform 0.2s ease;
+}
+
+.tab-highlight[data-state="active"]::after {
+  transform: scaleX(1);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.slide-in-up {
+  animation: slideInUp 0.3s ease-out;
+}
+
+/* Responsive utilities */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+/* Mobile viewport simulation */
+.viewport-mobile {
+  max-width: 375px;
+  margin: 0 auto;
+  border-left: 2px dashed rgba(59, 130, 246, 0.3);
+  border-right: 2px dashed rgba(59, 130, 246, 0.3);
+  position: relative;
+}
+
+.viewport-tablet {
+  max-width: 768px;
+  margin: 0 auto;
+  border-left: 2px dashed rgba(59, 130, 246, 0.3);
+  border-right: 2px dashed rgba(59, 130, 246, 0.3);
+  position: relative;
+}
+
+/* Mobile sheet animations */
+.sheet-slide-in {
+  animation: sheetSlideIn 0.3s ease-out forwards;
+}
+
+@keyframes sheetSlideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Responsive typography */
+@media (max-width: 640px) {
+  h1 {
+    font-size: 1.5rem;
+  }
+  h2 {
+    font-size: 1.25rem;
+  }
+  .text-sm {
+    font-size: 0.8125rem;
+  }
+}
+
+/* Mejoras para dispositivos táctiles */
+@media (pointer: coarse) {
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+
+  button,
+  [role="button"],
+  a,
+  input,
+  select,
+  .clickable {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .input-touch-friendly {
+    font-size: 16px; /* Prevenir zoom en iOS */
+  }
+}
+
+/* Mejoras para el rendimiento en dispositivos móviles */
+@media (max-width: 768px) {
+  .canvas-grid {
+    background-size: 30px 30px; /* Grid más grande en móviles para mejor rendimiento */
+  }
+
+  /* Reducir animaciones en dispositivos de bajo rendimiento */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Mejoras para pantallas pequeñas */
+@media (max-width: 640px) {
+  .tab-compact {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .text-compact {
+    font-size: 0.75rem;
+  }
+
+  .grid-compact {
+    gap: 0.5rem;
+  }
+}
+
+/* Mejoras para pantallas medianas */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .md-layout-optimized {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Mejoras para pantallas grandes */
+@media (min-width: 1025px) {
+  .lg-enhanced-ui {
+    --spacing-enhanced: 1.5rem;
+  }
+}
+
+/* Mejoras de accesibilidad */
+@media (prefers-reduced-motion: reduce) {
+  .reduced-motion {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .high-contrast-borders {
+    border-color: white !important;
+  }
+
+  .high-contrast-text {
+    color: white !important;
+  }
+}
+
+/* Mejoras para lectores de pantalla */
+.sr-only-focusable:not(:focus):not(:focus-within) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Añadir estos estilos al final del archivo */
+
+/* Clases para optimización de rendimiento */
+.hardware-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+.disable-animations * {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Estilos para el modo de bajo rendimiento */
+.low-performance-mode .canvas-grid {
+  background-size: 40px 40px; /* Grid más grande para mejor rendimiento */
+}
+
+.low-performance-mode .component-shadow {
+  box-shadow: none !important; /* Eliminar sombras para mejorar rendimiento */
+}
+
+.low-performance-mode .reduced-effects {
+  opacity: 1 !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+}
+
+/* Añadir estos estilos al final del archivo para personalizar las barras de desplazamiento */
+
+/* Estilos para barras de desplazamiento personalizadas */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Estilos para Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) rgba(0, 0, 0, 0.1);
+}
+
+/* Ocultar scrollbars en dispositivos móviles pero mantener funcionalidad */
+@media (max-width: 768px) {
+  .mobile-scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .mobile-scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
